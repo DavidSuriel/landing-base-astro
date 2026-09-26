@@ -1,0 +1,73 @@
+{
+  "negocio": {
+    "nombre": "[PENDIENTE] Nombre comercial",
+    "web": "",
+    "logo": "",
+    "descripcion": "[PENDIENTE] Descripción real de la empresa"
+  },
+  "hero": {
+    "etiqueta": "[PENDIENTE] Sector y cobertura",
+    "titulo": "[PENDIENTE] Una propuesta clara para tu cliente",
+    "subtitulo": "[PENDIENTE] Explica qué resuelves, para quién y qué prueba respalda tu propuesta.",
+    "imagen": "/src/assets/images/placeholder.svg",
+    "alt": "Ilustración geométrica de ejemplo; reemplazar con una foto del cliente",
+    "video": "",
+    "videoExterno": "",
+    "modo": "imagen",
+    "cta": "Solicitar información"
+  },
+  "secciones": {
+    "servicios": "Servicios",
+    "proyectos": "Proyectos",
+    "contacto": "Hablemos de tu proyecto",
+    "contactoTexto": "Cuéntanos qué necesitas y dónde se realizará el trabajo."
+  },
+  "servicios": [
+    {
+      "nombre": "[PENDIENTE] Servicio prioritario",
+      "descripcion": "[PENDIENTE] Problema que resuelve, alcance y beneficio concreto.",
+      "foto": "",
+      "alt": ""
+    }
+  ],
+  "proyectos": [],
+  "contacto": {
+    "whatsapp": "",
+    "mensajeWhatsapp": "Hola, quisiera información sobre sus servicios.",
+    "telefono": "",
+    "email": "",
+    "direccion": "",
+    "horario": ""
+  },
+  "redes": [],
+  "seo": {
+    "titulo": "[PENDIENTE] Empresa y servicio principal",
+    "descripcion": "[PENDIENTE] Servicio, ubicación y propuesta de valor real.",
+    "imagen": "",
+    "indexar": false
+  },
+  "formulario": {
+    "activo": false,
+    "titulo": "Solicitar una cotización",
+    "nombre": "Nombre",
+    "email": "Correo electrónico",
+    "mensaje": "¿Qué necesitas?",
+    "enviar": "Enviar solicitud",
+    "aviso": "Usaremos estos datos para responder tu consulta.",
+    "asunto": "Nueva consulta desde la web"
+  },
+  "interfaz": {
+    "menuServicios": "Servicios",
+    "menuProyectos": "Proyectos",
+    "menuContacto": "Contacto",
+    "saltar": "Saltar al contenido",
+    "pausar": "Pausar video",
+    "reproducir": "Reproducir video",
+    "whatsapp": "Escribir por WhatsApp",
+    "correo": "Enviar correo",
+    "volver": "Volver al inicio",
+    "noEncontrado": "Página no encontrada",
+    "noEncontradoTexto": "La dirección que buscas no está disponible.",
+    "derechos": "Todos los derechos reservados."
+  }
+}

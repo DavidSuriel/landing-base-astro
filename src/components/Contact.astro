@@ -1,0 +1,36 @@
+---
+import data, { whatsapp, email } from '../lib/content';
+import Icon from './Icon.astro';
+const key = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY;
+if (data.formulario.activo && !key) throw new Error('Formulario activo: configura PUBLIC_WEB3FORMS_ACCESS_KEY antes de compilar.');
+const showForm = data.formulario.activo && key;
+---
+<section id="contacto" class="contact wrap section" aria-labelledby="contact-title">
+  <div>
+    <p class="eyebrow">{data.negocio.nombre}</p>
+    <h2 id="contact-title">{data.secciones.contacto}</h2>
+    <p>{data.secciones.contactoTexto}</p>
+    <div class="contact-links">
+      {whatsapp && <a class="button" href={whatsapp}>{data.interfaz.whatsapp}</a>}
+      {email && <a href={email}>{data.contacto.email}</a>}
+      {data.contacto.telefono && <a href={`tel:${data.contacto.telefono.replace(/[^+\d]/g, '')}`}>{data.contacto.telefono}</a>}
+    </div>
+    {data.contacto.direccion && <p>{data.contacto.direccion}</p>}
+    {data.contacto.horario && <p>{data.contacto.horario}</p>}
+    <ul class="socials">{data.redes.map((r: {nombre: string; url: string}) => r.nombre && r.url && <li><a href={r.url} rel="noopener noreferrer" target="_blank" class="inline-flex items-center gap-2">{r.nombre}<Icon /></a></li>)}</ul>
+  </div>
+  {showForm && <form action="https://api.web3forms.com/submit" method="POST">
+    <h3>{data.formulario.titulo}</h3>
+    <input type="hidden" name="access_key" value={key} />
+    <input type="hidden" name="subject" value={data.formulario.asunto} />
+    <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" aria-hidden="true" />
+    <label for="nombre">{data.formulario.nombre}</label>
+    <input id="nombre" name="name" autocomplete="name" required maxlength="120" />
+    <label for="email">{data.formulario.email}</label>
+    <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" />
+    <label for="mensaje">{data.formulario.mensaje}</label>
+    <textarea id="mensaje" name="message" rows="5" required maxlength="4000"></textarea>
+    <p class="form-note">{data.formulario.aviso}</p>
+    <button class="button" type="submit">{data.formulario.enviar}</button>
+  </form>}
+</section>

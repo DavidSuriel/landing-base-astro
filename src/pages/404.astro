@@ -1,0 +1,5 @@
+---
+import Layout from '../layouts/Layout.astro';
+import data from '../lib/content';
+---
+<Layout title={data.interfaz.noEncontrado} noindex><main id="contenido" class="wrap section"><p class="eyebrow">404</p><h1>{data.interfaz.noEncontrado}</h1><p>{data.interfaz.noEncontradoTexto}</p><a class="button" href="/">{data.interfaz.volver}</a></main></Layout>

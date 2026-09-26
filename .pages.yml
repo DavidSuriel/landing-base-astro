@@ -1,0 +1,276 @@
+settings:
+  content:
+    merge: true
+media:
+- name: images
+  label: Imágenes
+  input: src/assets/images
+  output: /src/assets/images
+  categories:
+  - image
+  rename: safe
+  extensions:
+  - png
+  - jpg
+  - jpeg
+  - webp
+  - avif
+  - svg
+- name: videos
+  label: Videos MP4 ya optimizados
+  input: public/videos
+  output: /videos
+  extensions:
+  - mp4
+  rename: safe
+content:
+- name: landing
+  label: Página principal
+  type: file
+  path: src/content/landing.json
+  format: json
+  operations:
+    delete: false
+  fields:
+  - name: negocio
+    label: Empresa
+    type: object
+    fields:
+    - name: nombre
+      label: Nombre
+      type: string
+    - name: web
+      label: Dominio completo (https://...)
+      type: string
+    - name: logo
+      label: Logo
+      type: image
+      options:
+        media: images
+    - name: descripcion
+      label: Descripción
+      type: text
+  - name: hero
+    label: Portada
+    type: object
+    fields:
+    - name: etiqueta
+      label: Texto pequeño superior
+      type: string
+    - name: titulo
+      label: Título
+      type: string
+    - name: subtitulo
+      label: Subtítulo
+      type: text
+    - name: imagen
+      label: Imagen / portada del video
+      type: image
+      options:
+        media: images
+    - name: alt
+      label: Descripción de la imagen
+      type: string
+    - name: video
+      label: Video MP4 optimizado (subir archivo)
+      type: file
+      options:
+        media: videos
+    - name: videoExterno
+      label: 'Video externo: URL directa HTTPS a MP4 (opcional)'
+      type: string
+    - name: modo
+      label: Formato de portada
+      type: select
+      options:
+        values:
+        - imagen
+        - video
+    - name: cta
+      label: Texto del botón principal
+      type: string
+  - name: secciones
+    label: Títulos de secciones
+    type: object
+    fields:
+    - name: servicios
+      label: Servicios
+      type: string
+    - name: proyectos
+      label: Proyectos
+      type: string
+    - name: contacto
+      label: Contacto
+      type: string
+    - name: contactoTexto
+      label: Texto de contacto
+      type: text
+  - name: servicios
+    label: Servicios
+    type: object
+    list:
+      max: 12
+      collapsible:
+        collapsed: true
+        summary: '{nombre}'
+    fields:
+    - name: nombre
+      label: Nombre
+      type: string
+    - name: descripcion
+      label: Descripción
+      type: text
+    - name: foto
+      label: Foto
+      type: image
+      options:
+        media: images
+    - name: alt
+      label: Descripción de la imagen
+      type: string
+  - name: proyectos
+    label: Proyectos
+    type: object
+    list:
+      max: 12
+      collapsible:
+        collapsed: true
+        summary: '{titulo}'
+    fields:
+    - name: titulo
+      label: Título
+      type: string
+    - name: descripcion
+      label: Descripción
+      type: text
+    - name: foto
+      label: Foto
+      type: image
+      options:
+        media: images
+    - name: alt
+      label: Descripción de la imagen
+      type: string
+  - name: contacto
+    label: Contacto
+    type: object
+    fields:
+    - name: whatsapp
+      label: WhatsApp con código de país, solo números
+      type: string
+    - name: mensajeWhatsapp
+      label: Mensaje inicial de WhatsApp
+      type: string
+    - name: telefono
+      label: Teléfono
+      type: string
+    - name: email
+      label: Correo
+      type: string
+    - name: direccion
+      label: Dirección
+      type: string
+    - name: horario
+      label: Horario informativo
+      type: string
+  - name: redes
+    label: Redes sociales
+    type: object
+    list:
+      max: 12
+      collapsible:
+        collapsed: true
+        summary: '{nombre}'
+    fields:
+    - name: nombre
+      label: Nombre
+      type: string
+    - name: url
+      label: Enlace completo HTTPS
+      type: string
+  - name: seo
+    label: Buscadores y redes
+    type: object
+    fields:
+    - name: titulo
+      label: Título
+      type: string
+    - name: descripcion
+      label: Descripción
+      type: text
+    - name: imagen
+      label: Imagen al compartir en redes (1200 px de ancho)
+      type: image
+      options:
+        media: images
+    - name: indexar
+      label: Permitir indexación (activar al publicar)
+      type: boolean
+  - name: formulario
+    label: Formulario
+    type: object
+    fields:
+    - name: activo
+      label: Mostrar formulario
+      type: boolean
+    - name: titulo
+      label: Título
+      type: string
+    - name: nombre
+      label: Nombre
+      type: string
+    - name: email
+      label: Correo
+      type: string
+    - name: mensaje
+      label: Etiqueta del mensaje
+      type: text
+    - name: enviar
+      label: Botón de envío
+      type: string
+    - name: aviso
+      label: Aviso de uso de datos
+      type: text
+    - name: asunto
+      label: Asunto del correo del formulario
+      type: string
+  - name: interfaz
+    label: Textos de navegación y controles
+    type: object
+    fields:
+    - name: menuServicios
+      label: Enlace a servicios
+      type: string
+    - name: menuProyectos
+      label: Enlace a proyectos
+      type: string
+    - name: menuContacto
+      label: Enlace a contacto
+      type: string
+    - name: saltar
+      label: Saltar al contenido
+      type: string
+    - name: pausar
+      label: Pausar video
+      type: string
+    - name: reproducir
+      label: Reproducir video
+      type: string
+    - name: whatsapp
+      label: Texto del botón de WhatsApp
+      type: string
+    - name: correo
+      label: Escribir por correo
+      type: string
+    - name: volver
+      label: Volver al inicio
+      type: string
+    - name: noEncontrado
+      label: Título de página no encontrada
+      type: string
+    - name: noEncontradoTexto
+      label: Mensaje de página no encontrada
+      type: string
+    - name: derechos
+      label: Texto del pie
+      type: string

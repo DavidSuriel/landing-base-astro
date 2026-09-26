@@ -1,0 +1,25 @@
+{
+  "name": "landing-base",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "build": "node scripts/validate-content.mjs && astro build",
+    "preview": "astro preview",
+    "release:check": "node scripts/validate-content.mjs --release && astro check && astro build"
+  },
+  "dependencies": {
+    "astro": "7.3.5",
+    "@tailwindcss/vite": "4.3.3",
+    "tailwindcss": "4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "6.0.3"
+  }
+}
