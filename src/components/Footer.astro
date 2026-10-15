@@ -1,0 +1,10 @@
+---
+import { getContent } from '../lib/content';
+const data = getContent(Astro.params.lang);
+const redes = data.redes.filter((r) => r.nombre && r.url);
+---
+<footer class="wrap footer">
+  <span>© {new Date().getFullYear()} {data.negocio.nombre}</span>
+  {redes.length > 0 && <ul class="socials">{redes.map((r) => <li><a href={r.url} rel="noopener noreferrer" target="_blank">{r.nombre}<span class="sr-only"> {data.interfaz.nuevaPestana}</span></a></li>)}</ul>}
+  <span>{data.interfaz.derechos}</span>
+</footer>

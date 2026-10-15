@@ -1,0 +1,41 @@
+---
+// Logos de marcas o clientes. Con 6 o más se mueven en carrusel CSS; con menos, cuadrícula quieta. Lista vacía: no se genera.
+// Accesible: la copia es aria-hidden, pausa con puntero/foco y botón (WCAG 2.2.2); quieto con movimiento reducido.
+// Logos en eager + fetchpriority low: el lazy del navegador no sigue bien una pista animada con transform y los pinta tarde.
+import Icon from './Icon.astro';
+import MediaImage from './MediaImage.astro';
+import { getContent } from '../lib/content';
+const data = getContent(Astro.params.lang);
+const logos = data.marcas.filter((m) => m.nombre && m.logo);
+const moving = logos.length >= 6;
+---
+{logos.length > 0 && <section class="logos section" aria-labelledby="logos-title" data-logos>
+  <div class="wrap logos__head">
+    <h2 id="logos-title">{data.secciones.marcas}</h2>
+    {moving && <button class="logos__toggle" type="button" aria-pressed="false" data-logos-toggle hidden
+      aria-label={data.interfaz.pausar} data-pause={data.interfaz.pausar} data-play={data.interfaz.reproducir}>
+      <Icon name="pause" size={14} class="logos__pause" /><Icon name="play" size={14} class="logos__play" />
+    </button>}
+  </div>
+  <div class:list={['marquee', { 'is-moving': moving }]}>
+    <div class="marquee__track">
+      {(moving ? [0, 1] : [0]).map((copy) => <ul class="marquee__list" aria-hidden={copy === 1 ? 'true' : undefined}>
+        {logos.map((m) => <li class="logo-card"><MediaImage src={m.logo} alt={copy === 0 ? m.nombre : ''} widths={[180, 360]} sizes="180px" eager priority="low" /></li>)}
+      </ul>)}
+    </div>
+  </div>
+</section>}
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-logos]')) {
+    const btn = root.querySelector<HTMLButtonElement>('[data-logos-toggle]');
+    if (!btn) continue;
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      const paused = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(paused));
+      btn.setAttribute('aria-label', (paused ? btn.dataset.play : btn.dataset.pause) || '');
+      root.classList.toggle('is-paused', paused);
+    });
+  }
+</script>

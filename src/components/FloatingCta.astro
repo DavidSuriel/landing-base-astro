@@ -1,0 +1,21 @@
+---
+// Solo móvil: aparece al salir del hero y se oculta mientras el contacto está a la vista.
+// Se desactiva dejando vacío interfaz.contactoFlotante.
+import Icon from './Icon.astro';
+import { getContent } from '../lib/content';
+const data = getContent(Astro.params.lang);
+---
+{data.interfaz.contactoFlotante && <a class="float-cta" href="#contacto" data-float-cta hidden aria-label={data.interfaz.contactoFlotante}><Icon name="message-circle" size={24} /></a>}
+
+<script>
+  const btn = document.querySelector<HTMLElement>('[data-float-cta]');
+  const hero = document.querySelector('[data-hero]');
+  const contact = document.getElementById('contacto');
+  if (btn && hero && 'IntersectionObserver' in window) {
+    btn.hidden = false;
+    let pastHero = false, inContact = false;
+    const update = () => btn.classList.toggle('is-visible', pastHero && !inContact);
+    new IntersectionObserver(([e]) => { pastHero = !e.isIntersecting && e.boundingClientRect.top < 0; update(); }).observe(hero);
+    if (contact) new IntersectionObserver(([e]) => { inContact = e.isIntersecting; update(); }, { threshold: 0.15 }).observe(contact);
+  }
+</script>

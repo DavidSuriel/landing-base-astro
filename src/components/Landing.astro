@@ -1,0 +1,26 @@
+---
+// La página completa. Reordena, quita o reemplaza secciones aquí; cada una se omite sola si su contenido está vacío.
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Hero from './Hero.astro';
+import CardGrid from './CardGrid.astro';
+import LogoMarquee from './LogoMarquee.astro';
+import Contact from './Contact.astro';
+import Footer from './Footer.astro';
+import FloatingCta from './FloatingCta.astro';
+import { getContent } from '../lib/content';
+const data = getContent(Astro.params.lang);
+---
+<Layout>
+  <Navbar />
+  <main id="contenido">
+    <Hero />
+    <CardGrid id="servicios" title={data.secciones.servicios} numbered
+      items={data.servicios.map((s) => ({ titulo: s.nombre, descripcion: s.descripcion, foto: s.foto, alt: s.alt }))} />
+    <CardGrid id="proyectos" title={data.secciones.proyectos} items={data.proyectos} />
+    <LogoMarquee />
+    <Contact />
+  </main>
+  <Footer />
+  <FloatingCta />
+</Layout>

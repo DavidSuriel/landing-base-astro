@@ -1,0 +1,17 @@
+---
+// Cuadrícula genérica de tarjetas (servicios, proyectos…). Sin elementos con título no se genera.
+import MediaImage from './MediaImage.astro';
+interface Item { titulo: string; descripcion?: string; foto?: string; alt?: string }
+interface Props { id: string; title: string; items: Item[]; numbered?: boolean }
+const { id, title, numbered = false } = Astro.props;
+const items = Astro.props.items.filter((i) => i.titulo);
+---
+{items.length > 0 && <section id={id} class="wrap section" aria-labelledby={`${id}-title`}>
+  <h2 id={`${id}-title`}>{title}</h2>
+  <div class="card-grid">{items.map((item, i) => <article class="card">
+    {numbered && <span class="number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>}
+    <MediaImage src={item.foto} alt={item.alt} />
+    <h3>{item.titulo}</h3>
+    {item.descripcion && <p>{item.descripcion}</p>}
+  </article>)}</div>
+</section>}

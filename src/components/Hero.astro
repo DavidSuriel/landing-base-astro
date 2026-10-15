@@ -1,52 +1,26 @@
 ---
-import data, { mainContact } from '../lib/content';
+// Hero con medio intercambiable. Por defecto, según hero.modo: imagen (también SVG estático) o video con portada.
+// Para cualquier otro medio (3D, ilustración SVG animada de anatomy, composición propia) pásalo como hijo desde Landing.astro:
+//   <Hero><Hero3D /></Hero>   ·   <Hero><Ilustracion /></Hero>
+// El hijo reemplaza al bloque de imagen/video; textos, CTA y data-hero (que usa el botón flotante) se mantienen.
+import { getContent, mainContact } from '../lib/content';
 import MediaImage from './MediaImage.astro';
+import HeroVideo from './HeroVideo.astro';
 import Icon from './Icon.astro';
+const data = getContent(Astro.params.lang);
 const video = data.hero.videoExterno || data.hero.video;
-const hasVideo = data.hero.modo === 'video' && video;
+const hasVideo = data.hero.modo === 'video' && !!video;
+const custom = Astro.slots.has('default');
 ---
-<section class="hero wrap" aria-labelledby="hero-title">
+<section class="hero wrap" aria-labelledby="hero-title" data-hero>
   <div class="hero-copy">
-    <p class="eyebrow">{data.hero.etiqueta}</p>
+    {data.hero.etiqueta && <p class="eyebrow">{data.hero.etiqueta}</p>}
     <h1 id="hero-title">{data.hero.titulo}</h1>
     <p class="lead">{data.hero.subtitulo}</p>
-    <a class="button" href={mainContact}>{data.hero.cta}<Icon /></a>
+    <a class="button" href={mainContact(data)}>{data.hero.cta}<Icon /></a>
   </div>
-  {(data.hero.imagen || hasVideo) && <div class="hero-media" data-hero-media>
+  {custom ? <slot /> : (data.hero.imagen || hasVideo) && <div class="hero-media" data-hero-media>
     <MediaImage src={data.hero.imagen} alt={data.hero.alt} eager />
-    {hasVideo && <>
-      <video data-hero-video data-src={video} muted loop playsinline preload="none" aria-hidden="true"></video>
-      <button class="video-control" type="button" data-video-toggle data-play={data.interfaz.reproducir} data-pause={data.interfaz.pausar} hidden>{data.interfaz.pausar}</button>
-    </>}
+    {hasVideo && <HeroVideo src={video} />}
   </div>}
 </section>
-<script>
-  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
-  const button = document.querySelector<HTMLButtonElement>('[data-video-toggle]');
-  if (video && button) {
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    // Celular o ahorro de datos: solo la imagen de portada, sin descargar el video.
-    const small = window.matchMedia('(max-width: 760px)');
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
-    const update = () => { button.textContent = (video.paused ? button.dataset.play : button.dataset.pause) || ''; };
-    const configure = async () => {
-      if (motion.matches || small.matches || saveData) { video.pause(); video.hidden = true; video.removeAttribute('src'); video.load(); button.hidden = true; return; }
-      video.hidden = false;
-      if (!video.getAttribute('src')) video.src = video.dataset.src || '';
-      button.hidden = false;
-      try { await video.play(); } catch { /* El navegador puede impedir autoplay; queda el botón. */ }
-      update();
-    };
-    button.addEventListener('click', async () => {
-      if (video.paused) { try { await video.play(); } catch { video.hidden = true; button.hidden = true; } }
-      else video.pause();
-      update();
-    });
-    video.addEventListener('error', () => { video.hidden = true; button.hidden = true; });
-    video.addEventListener('playing', update);
-    video.addEventListener('pause', update);
-    motion.addEventListener('change', configure);
-    small.addEventListener('change', configure);
-    configure();
-  }
-</script>

@@ -1,20 +1,26 @@
 ---
 import '../styles/global.css';
-import data from '../lib/content';
+import { getContent, LANGS } from '../lib/content';
 import { resolveImage } from '../lib/images';
 import { getImage } from 'astro:assets';
 interface Props { title?: string; noindex?: boolean }
+const data = getContent(Astro.params.lang);
 const title = Astro.props.title || data.seo.titulo || data.negocio.nombre;
 const description = data.seo.descripcion || data.negocio.descripcion;
-const canonical = data.negocio.web ? new URL(Astro.url.pathname, data.negocio.web).href : undefined;
+const site = data.negocio.web;
+const abs = (path: string) => (site ? new URL(path, site).href : undefined);
+const canonical = abs(Astro.url.pathname);
 const source = resolveImage(data.seo.imagen);
 const og = source ? await getImage({ src: source, width: 1200 }) : undefined;
-const ogUrl = og && data.negocio.web ? new URL(og.src, data.negocio.web).href : undefined;
+const ogUrl = og ? abs(og.src) : undefined;
 const noindex = Astro.props.noindex || !data.seo.indexar;
-const business = { '@context':'https://schema.org', '@type':'LocalBusiness', name:data.negocio.nombre, url:data.negocio.web || undefined, description:data.negocio.descripcion, telephone:data.contacto.telefono || undefined, email:data.contacto.email || undefined, address:data.contacto.direccion || undefined, sameAs:data.redes.map((r: {url: string}) => r.url).filter(Boolean) };
+// hreflang solo con más de un idioma y dominio definido.
+const alternates = !Astro.props.noindex && site && LANGS.length > 1 ? LANGS : [];
+// Solo datos del JSON; se publica únicamente con la indexación activada (contenido confirmado).
+const business = { '@context':'https://schema.org', '@type':'LocalBusiness', name:data.negocio.nombre, url:site || undefined, description:data.negocio.descripcion, telephone:data.contacto.telefono || undefined, email:data.contacto.email || undefined, address:data.contacto.direccion || undefined, sameAs:data.redes.map((r) => r.url).filter(Boolean) };
 ---
 <!doctype html>
-<html lang="es">
+<html lang={data.idioma}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,13 +28,17 @@ const business = { '@context':'https://schema.org', '@type':'LocalBusiness', nam
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
+    {alternates.map((l) => <link rel="alternate" hreflang={l.lang} href={abs(l.path)} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={abs('/')} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    {data.seo.locale && <meta property="og:locale" content={data.seo.locale} />}
     {canonical && <meta property="og:url" content={canonical} />}
     {ogUrl && <meta property="og:image" content={ogUrl} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    {data.seo.indexar && <script type="application/ld+json" set:html={JSON.stringify(business).replace(/</g, '\u003c')} />}
+    <!-- Fuentes: ver el ejemplo comentado en astro.config.mjs y añadir aquí <Font cssVariable="--font-x" preload /> -->
+    {data.seo.indexar && <script type="application/ld+json" set:html={JSON.stringify(business).replace(/</g, '\\u003c')} />}
   </head>
   <body><a class="skip" href="#contenido">{data.interfaz.saltar}</a><slot /></body>
 </html>

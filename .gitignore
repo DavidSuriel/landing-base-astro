@@ -7,3 +7,12 @@ dist/
 .DS_Store
 Thumbs.db
 plan/originales/
+
+# Skills de agentes: se instalan a nivel de usuario, no se versionan (pesan decenas de MB)
+.claude/skills/
+.agents/
+.codex/
+
+# Impeccable: capturas de revisión y páginas de decisión (locales)
+.impeccable/review/
+.impeccable/questions/

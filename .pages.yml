@@ -1,3 +1,5 @@
+# Panel de Pages CMS. Cada etiqueta responde a «¿qué escribirá aquí alguien no técnico?».
+# Segundo idioma: copia el bloque «landing» al final con name/label/path nuevos y `fields: *campos` (ver README › Segundo idioma).
 settings:
   content:
     merge: true
@@ -31,7 +33,8 @@ content:
   format: json
   operations:
     delete: false
-  fields:
+  # idioma no aparece en el panel; merge: true lo conserva al guardar.
+  fields: &campos
   - name: negocio
     label: Empresa
     type: object
@@ -55,7 +58,7 @@ content:
     type: object
     fields:
     - name: etiqueta
-      label: Texto pequeño superior
+      label: Texto pequeño superior (opcional)
       type: string
     - name: titulo
       label: Título
@@ -69,7 +72,7 @@ content:
       options:
         media: images
     - name: alt
-      label: Descripción de la imagen
+      label: Qué se ve en la imagen (para lectores de pantalla)
       type: string
     - name: video
       label: Video MP4 optimizado (subir archivo)
@@ -99,6 +102,9 @@ content:
     - name: proyectos
       label: Proyectos
       type: string
+    - name: marcas
+      label: Marcas o clientes
+      type: string
     - name: contacto
       label: Contacto
       type: string
@@ -126,7 +132,7 @@ content:
       options:
         media: images
     - name: alt
-      label: Descripción de la imagen
+      label: Qué se ve en la foto (obligatorio si hay foto)
       type: string
   - name: proyectos
     label: Proyectos
@@ -149,14 +155,31 @@ content:
       options:
         media: images
     - name: alt
-      label: Descripción de la imagen
+      label: Qué se ve en la foto (obligatorio si hay foto)
       type: string
+  - name: marcas
+    label: Logos de marcas o clientes (con 6 o más se mueven en carrusel)
+    type: object
+    list:
+      max: 40
+      collapsible:
+        collapsed: true
+        summary: '{nombre}'
+    fields:
+    - name: nombre
+      label: Nombre de la marca
+      type: string
+    - name: logo
+      label: Logo (autorizado)
+      type: image
+      options:
+        media: images
   - name: contacto
     label: Contacto
     type: object
     fields:
     - name: whatsapp
-      label: WhatsApp con código de país, solo números
+      label: Número de WhatsApp con código de país, solo números (ej. 18095551234)
       type: string
     - name: mensajeWhatsapp
       label: Mensaje inicial de WhatsApp
@@ -165,7 +188,7 @@ content:
       label: Teléfono
       type: string
     - name: email
-      label: Correo
+      label: Correo visible (no cambia el destinatario del formulario)
       type: string
     - name: direccion
       label: Dirección
@@ -173,6 +196,24 @@ content:
     - name: horario
       label: Horario informativo
       type: string
+    - name: mapa
+      label: Mapa (opcional)
+      type: object
+      fields:
+      - name: imagen
+        label: Imagen del mapa
+        type: image
+        options:
+          media: images
+      - name: alt
+        label: Qué muestra el mapa
+        type: string
+      - name: enlace
+        label: Enlace «Cómo llegar» (Google Maps, HTTPS)
+        type: string
+      - name: credito
+        label: Crédito del mapa (ej. © OpenStreetMap)
+        type: string
   - name: redes
     label: Redes sociales
     type: object
@@ -203,41 +244,80 @@ content:
       type: image
       options:
         media: images
+    - name: locale
+      label: Región para redes (ej. es_ES, es_DO, en_US)
+      type: string
     - name: indexar
-      label: Permitir indexación (activar al publicar)
+      label: Permitir indexación (activar solo cuando el dominio real apunte a este sitio)
       type: boolean
   - name: formulario
     label: Formulario
     type: object
     fields:
-    - name: activo
-      label: Mostrar formulario
+    - name: whatsapp
+      label: Enviar por WhatsApp (usa el número de Contacto)
+      type: boolean
+    - name: correo
+      label: Enviar por correo (solo si el técnico configuró Web3Forms)
       type: boolean
     - name: titulo
       label: Título
       type: string
     - name: nombre
-      label: Nombre
+      label: Etiqueta del nombre
       type: string
     - name: email
-      label: Correo
+      label: Etiqueta del correo
+      type: string
+    - name: telefono
+      label: Etiqueta del teléfono (vacío = no se pide)
       type: string
     - name: mensaje
       label: Etiqueta del mensaje
-      type: text
-    - name: enviar
-      label: Botón de envío
+      type: string
+    - name: enviarWhatsapp
+      label: Botón de WhatsApp
+      type: string
+    - name: enviarCorreo
+      label: Botón de correo
+      type: string
+    - name: saludo
+      label: Primera línea del mensaje de WhatsApp
       type: string
     - name: aviso
       label: Aviso de uso de datos
       type: text
     - name: asunto
-      label: Asunto del correo del formulario
+      label: Asunto del correo que recibes
+      type: string
+    - name: requerido
+      label: 'Error de campo vacío ({campo} se reemplaza por el nombre del campo)'
+      type: string
+    - name: correoInvalido
+      label: Error de correo inválido
+      type: string
+    - name: enviando
+      label: Mensaje mientras se envía
+      type: string
+    - name: exito
+      label: Mensaje de envío correcto
+      type: string
+    - name: error
+      label: Mensaje de error al enviar
       type: string
   - name: interfaz
     label: Textos de navegación y controles
     type: object
     fields:
+    - name: menu
+      label: Nombre del menú (lectores de pantalla)
+      type: string
+    - name: menuAbrir
+      label: Abrir menú (lectores de pantalla)
+      type: string
+    - name: menuCerrar
+      label: Cerrar menú (lectores de pantalla)
+      type: string
     - name: menuServicios
       label: Enlace a servicios
       type: string
@@ -247,20 +327,29 @@ content:
     - name: menuContacto
       label: Enlace a contacto
       type: string
+    - name: idioma
+      label: Nombre del selector de idioma
+      type: string
     - name: saltar
       label: Saltar al contenido
       type: string
     - name: pausar
-      label: Pausar video
+      label: Botón pausar (video y logos)
       type: string
     - name: reproducir
-      label: Reproducir video
+      label: Botón reproducir (video y logos)
       type: string
     - name: whatsapp
       label: Texto del botón de WhatsApp
       type: string
-    - name: correo
-      label: Escribir por correo
+    - name: comoLlegar
+      label: Texto del enlace del mapa
+      type: string
+    - name: nuevaPestana
+      label: Aviso de enlace en otra pestaña (lectores de pantalla)
+      type: string
+    - name: contactoFlotante
+      label: Botón flotante en celular (vacío = sin botón)
       type: string
     - name: volver
       label: Volver al inicio
