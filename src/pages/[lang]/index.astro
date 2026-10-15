@@ -1,0 +1,9 @@
+---
+// Idiomas adicionales (/en/, /pt/…): uno por cada src/content/landing.<código>.json. Con un solo idioma no genera nada.
+import Landing from '../../components/Landing.astro';
+import { LANGS } from '../../lib/content';
+export function getStaticPaths() {
+  return LANGS.filter((l) => !l.main).map((l) => ({ params: { lang: l.lang } }));
+}
+---
+<Landing />

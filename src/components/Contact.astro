@@ -1,36 +1,138 @@
 ---
-import data, { whatsapp, email } from '../lib/content';
+// Contacto: enlaces directos, formulario opcional (WhatsApp y/o correo con Web3Forms) y mapa estático opcional.
+// Sin JS: los enlaces directos funcionan y el formulario de correo hace POST nativo a Web3Forms.
 import Icon from './Icon.astro';
-const key = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY;
-if (data.formulario.activo && !key) throw new Error('Formulario activo: configura PUBLIC_WEB3FORMS_ACCESS_KEY antes de compilar.');
-const showForm = data.formulario.activo && key;
+import MediaImage from './MediaImage.astro';
+import { getContent, waLink, mailLink, telLink } from '../lib/content';
+const data = getContent(Astro.params.lang);
+const f = data.formulario;
+const c = data.contacto;
+const wa = waLink(c.whatsapp, c.mensajeWhatsapp);
+// Clave pública de Web3Forms: pertenece al destinatario configurado en Web3Forms. Nunca un valor de respaldo en el código.
+const key = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY as string | undefined;
+if (f.correo && !key) throw new Error('formulario.correo está activo: configura PUBLIC_WEB3FORMS_ACCESS_KEY (local en .env; en Cloudflare Pages para Production y Preview).');
+const useMail = f.correo && !!key;
+const useWa = f.whatsapp && !!wa;
+const fields = [
+  { name: 'name', id: 'nombre', label: f.nombre, type: 'text' as const, autocomplete: 'name', required: true, max: 120 },
+  { name: 'email', id: 'correo', label: f.email, type: 'email' as const, autocomplete: 'email', required: useMail && !useWa, max: 254 },
+  { name: 'phone', id: 'telefono', label: f.telefono, type: 'tel' as const, autocomplete: 'tel', required: false, max: 40 },
+].filter((field) => field.label);
 ---
 <section id="contacto" class="contact wrap section" aria-labelledby="contact-title">
   <div>
-    <p class="eyebrow">{data.negocio.nombre}</p>
     <h2 id="contact-title">{data.secciones.contacto}</h2>
-    <p>{data.secciones.contactoTexto}</p>
+    {data.secciones.contactoTexto && <p>{data.secciones.contactoTexto}</p>}
     <div class="contact-links">
-      {whatsapp && <a class="button" href={whatsapp}>{data.interfaz.whatsapp}</a>}
-      {email && <a href={email}>{data.contacto.email}</a>}
-      {data.contacto.telefono && <a href={`tel:${data.contacto.telefono.replace(/[^+\d]/g, '')}`}>{data.contacto.telefono}</a>}
+      {wa && <a class="button" href={wa} target="_blank" rel="noopener"><Icon name="message-circle" />{data.interfaz.whatsapp}<span class="sr-only"> {data.interfaz.nuevaPestana}</span></a>}
+      {c.email && <a href={mailLink(c.email)}><Icon name="mail" />{c.email}</a>}
+      {c.telefono && <a href={telLink(c.telefono)}><Icon name="phone" />{c.telefono}</a>}
     </div>
-    {data.contacto.direccion && <p>{data.contacto.direccion}</p>}
-    {data.contacto.horario && <p>{data.contacto.horario}</p>}
-    <ul class="socials">{data.redes.map((r: {nombre: string; url: string}) => r.nombre && r.url && <li><a href={r.url} rel="noopener noreferrer" target="_blank" class="inline-flex items-center gap-2">{r.nombre}<Icon /></a></li>)}</ul>
+    {c.direccion && <p>{c.direccion}</p>}
+    {c.horario && <p>{c.horario}</p>}
   </div>
-  {showForm && <form action="https://api.web3forms.com/submit" method="POST">
-    <h3>{data.formulario.titulo}</h3>
-    <input type="hidden" name="access_key" value={key} />
-    <input type="hidden" name="subject" value={data.formulario.asunto} />
-    <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" aria-hidden="true" />
-    <label for="nombre">{data.formulario.nombre}</label>
-    <input id="nombre" name="name" autocomplete="name" required maxlength="120" />
-    <label for="email">{data.formulario.email}</label>
-    <input id="email" name="email" type="email" autocomplete="email" required maxlength="254" />
-    <label for="mensaje">{data.formulario.mensaje}</label>
-    <textarea id="mensaje" name="message" rows="5" required maxlength="4000"></textarea>
-    <p class="form-note">{data.formulario.aviso}</p>
-    <button class="button" type="submit">{data.formulario.enviar}</button>
+
+  {(useMail || useWa) && <form class="form" method="post" action="https://api.web3forms.com/submit" data-contact-form hidden={!useMail}
+    aria-labelledby="form-title" data-phone={useWa ? c.whatsapp : undefined} data-saludo={f.saludo}
+    data-required={f.requerido} data-email-invalid={f.correoInvalido} data-sending={f.enviando} data-ok={f.exito} data-error={f.error}>
+    <h3 id="form-title">{f.titulo}</h3>
+    {useMail && <>
+      <input type="hidden" name="access_key" value={key} />
+      <input type="hidden" name="subject" value={f.asunto} />
+      <input type="hidden" name="from_name" value={data.negocio.nombre} />
+      <input type="checkbox" name="botcheck" class="sr-only" tabindex="-1" aria-hidden="true" />
+    </>}
+    {fields.map((field) => <label class="field">
+      <span>{field.label}</span>
+      <input name={field.name} type={field.type} autocomplete={field.autocomplete} required={field.required} maxlength={field.max}
+        data-field data-label={field.label} aria-describedby={`err-${field.id}`} />
+      <span class="field__error" id={`err-${field.id}`}></span>
+    </label>)}
+    <label class="field">
+      <span>{f.mensaje}</span>
+      <textarea name="message" rows="5" required maxlength="4000" data-field data-label={f.mensaje} aria-describedby="err-mensaje"></textarea>
+      <span class="field__error" id="err-mensaje"></span>
+    </label>
+    {f.aviso && <p class="form-note">{f.aviso}</p>}
+    <div class="form-actions">
+      {useWa && <button class="button" type="submit" value="whatsapp" data-js-only hidden><Icon name="message-circle" />{f.enviarWhatsapp}<span class="sr-only"> {data.interfaz.nuevaPestana}</span></button>}
+      {useMail && <button class={useWa ? 'button button--ghost' : 'button'} type="submit" value="correo"><Icon name="mail" />{f.enviarCorreo}</button>}
+    </div>
+    <p class="form-status" role="status" aria-live="polite" data-status hidden></p>
   </form>}
+
+  {c.mapa.imagen && <figure class="map">
+    <MediaImage src={c.mapa.imagen} alt={c.mapa.alt} widths={[480, 720, 960]} sizes="(max-width: 760px) 100vw, 50vw" />
+    <figcaption>
+      {c.mapa.enlace && <a href={c.mapa.enlace} target="_blank" rel="noopener"><Icon name="map-pin" />{data.interfaz.comoLlegar}<span class="sr-only"> {data.interfaz.nuevaPestana}</span></a>}
+      {c.mapa.credito && <small>{c.mapa.credito}</small>}
+    </figcaption>
+  </figure>}
 </section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  if (form) {
+    form.hidden = false;
+    form.querySelectorAll<HTMLElement>('[data-js-only]').forEach((el) => (el.hidden = false));
+    // Con JS: mensaje bajo cada campo y foco en el primer error. Sin JS valida el navegador (required).
+    form.noValidate = true;
+    const ds = form.dataset;
+    const fields = [...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-field]')];
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const say = (text = '', kind = '') => { status.hidden = !text; status.textContent = text; status.dataset.kind = kind; };
+    const errorOf = (el: HTMLInputElement | HTMLTextAreaElement, channel: string) => {
+      const value = el.value.trim();
+      const required = el.required || (el.type === 'email' && channel === 'correo');
+      if (!value) return required ? (ds.required || '').replace('{campo}', el.dataset.label || '') : '';
+      if (el.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return ds.emailInvalid || '';
+      return '';
+    };
+    const show = (el: HTMLElement, text: string) => {
+      el.setAttribute('aria-invalid', String(!!text));
+      el.closest('.field')?.classList.toggle('is-invalid', !!text);
+      const err = document.getElementById(el.getAttribute('aria-describedby') || '');
+      if (err) err.textContent = text;
+    };
+    const validate = (channel: string) => {
+      let first: HTMLElement | undefined;
+      for (const el of fields) { const msg = errorOf(el, channel); show(el, msg); if (msg) first ??= el; }
+      first?.focus();
+      return !first;
+    };
+    // El error desaparece en cuanto el campo se corrige.
+    for (const el of fields) el.addEventListener('input', () => { if (el.getAttribute('aria-invalid') === 'true' && !errorOf(el, '')) show(el, ''); });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const channel = (e.submitter as HTMLButtonElement | null)?.value || 'correo';
+      say();
+      if (!validate(channel)) return;
+
+      if (channel === 'whatsapp') {
+        const lines = [ds.saludo || ''];
+        for (const el of fields) if (el.tagName === 'INPUT' && el.value.trim()) lines.push(`${el.dataset.label}: ${el.value.trim()}`);
+        const message = fields.find((el) => el.tagName === 'TEXTAREA')?.value.trim();
+        if (message) lines.push('', message);
+        window.open(`https://wa.me/${ds.phone}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+        return;
+      }
+
+      // Correo con Web3Forms sin salir de la página.
+      const buttons = [...form.querySelectorAll<HTMLButtonElement>('button[type="submit"]')];
+      buttons.forEach((b) => (b.disabled = true));
+      say(ds.sending, 'busy');
+      try {
+        const res = await fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) throw new Error(json.message || res.statusText);
+        say(ds.ok, 'ok');
+        form.reset();
+      } catch {
+        say(ds.error, 'error');
+      } finally {
+        buttons.forEach((b) => (b.disabled = false));
+      }
+    });
+  }
+</script>

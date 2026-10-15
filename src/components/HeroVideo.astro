@@ -1,0 +1,38 @@
+---
+// Video de fondo del hero. Solo se incluye (con su script) cuando hero.modo es video: las landings con imagen no cargan este JS.
+import { getContent } from '../lib/content';
+interface Props { src: string }
+const data = getContent(Astro.params.lang);
+---
+<video data-hero-video data-src={Astro.props.src} muted loop playsinline preload="none" aria-hidden="true"></video>
+<button class="video-control" type="button" data-video-toggle data-play={data.interfaz.reproducir} data-pause={data.interfaz.pausar} hidden>{data.interfaz.pausar}</button>
+<script>
+  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+  const button = document.querySelector<HTMLButtonElement>('[data-video-toggle]');
+  if (video && button) {
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Celular o ahorro de datos: solo la imagen de portada, sin descargar el video.
+    const small = window.matchMedia('(max-width: 760px)');
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+    const update = () => { button.textContent = (video.paused ? button.dataset.play : button.dataset.pause) || ''; };
+    const configure = async () => {
+      if (motion.matches || small.matches || saveData) { video.pause(); video.hidden = true; video.removeAttribute('src'); video.load(); button.hidden = true; return; }
+      video.hidden = false;
+      if (!video.getAttribute('src')) video.src = video.dataset.src || '';
+      button.hidden = false;
+      try { await video.play(); } catch { /* El navegador puede impedir autoplay; queda el botón. */ }
+      update();
+    };
+    button.addEventListener('click', async () => {
+      if (video.paused) { try { await video.play(); } catch { video.hidden = true; button.hidden = true; } }
+      else video.pause();
+      update();
+    });
+    video.addEventListener('error', () => { video.hidden = true; button.hidden = true; });
+    video.addEventListener('playing', update);
+    video.addEventListener('pause', update);
+    motion.addEventListener('change', configure);
+    small.addEventListener('change', configure);
+    configure();
+  }
+</script>

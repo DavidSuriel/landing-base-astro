@@ -1,4 +1,5 @@
 {
+  "idioma": "es",
   "negocio": {
     "nombre": "[PENDIENTE] Nombre comercial",
     "web": "",
@@ -19,6 +20,7 @@
   "secciones": {
     "servicios": "Servicios",
     "proyectos": "Proyectos",
+    "marcas": "Marcas con las que trabajamos",
     "contacto": "Hablemos de tu proyecto",
     "contactoTexto": "Cuéntanos qué necesitas y dónde se realizará el trabajo."
   },
@@ -31,40 +33,63 @@
     }
   ],
   "proyectos": [],
+  "marcas": [],
   "contacto": {
     "whatsapp": "",
     "mensajeWhatsapp": "Hola, quisiera información sobre sus servicios.",
     "telefono": "",
     "email": "",
     "direccion": "",
-    "horario": ""
+    "horario": "",
+    "mapa": {
+      "imagen": "",
+      "alt": "",
+      "enlace": "",
+      "credito": ""
+    }
   },
   "redes": [],
   "seo": {
     "titulo": "[PENDIENTE] Empresa y servicio principal",
     "descripcion": "[PENDIENTE] Servicio, ubicación y propuesta de valor real.",
     "imagen": "",
+    "locale": "es_ES",
     "indexar": false
   },
   "formulario": {
-    "activo": false,
-    "titulo": "Solicitar una cotización",
+    "whatsapp": false,
+    "correo": false,
+    "titulo": "Solicitar información",
     "nombre": "Nombre",
     "email": "Correo electrónico",
+    "telefono": "Teléfono",
     "mensaje": "¿Qué necesitas?",
-    "enviar": "Enviar solicitud",
-    "aviso": "Usaremos estos datos para responder tu consulta.",
-    "asunto": "Nueva consulta desde la web"
+    "enviarWhatsapp": "Enviar por WhatsApp",
+    "enviarCorreo": "Enviar por correo",
+    "saludo": "Hola, les escribo desde la web.",
+    "aviso": "Usaremos estos datos solo para responder tu consulta.",
+    "asunto": "Nueva consulta desde la web",
+    "requerido": "{campo} es requerido.",
+    "correoInvalido": "Escribe un correo válido, por ejemplo nombre@empresa.com.",
+    "enviando": "Enviando…",
+    "exito": "Mensaje enviado. Te responderemos pronto.",
+    "error": "No se pudo enviar. Inténtalo de nuevo o escríbenos por otro medio."
   },
   "interfaz": {
+    "menu": "Menú principal",
+    "menuAbrir": "Abrir menú",
+    "menuCerrar": "Cerrar menú",
     "menuServicios": "Servicios",
     "menuProyectos": "Proyectos",
     "menuContacto": "Contacto",
+    "idioma": "Idioma",
     "saltar": "Saltar al contenido",
-    "pausar": "Pausar video",
-    "reproducir": "Reproducir video",
+    "pausar": "Pausar",
+    "reproducir": "Reproducir",
     "whatsapp": "Escribir por WhatsApp",
-    "correo": "Enviar correo",
+    "comoLlegar": "Cómo llegar",
+    "nuevaPestana": "(se abre en otra pestaña)",
+    "contactoFlotante": "Contactar",
     "volver": "Volver al inicio",
     "noEncontrado": "Página no encontrada",
     "noEncontradoTexto": "La dirección que buscas no está disponible.",

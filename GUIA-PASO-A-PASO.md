@@ -1,91 +1,89 @@
-# De la plantilla al primer cliente
+# De la plantilla al cliente publicado
 
-## A. Subir la plantilla — una sola vez
+Seis pasos. Cada uno tiene un prompt listo para el agente (Claude Code o Codex). Un agente principal basta.
 
-1. Descomprime files.zip. Abre la carpeta landing-base en tu editor y terminal. package.json debe estar directamente en esa carpeta.
-2. Instala Node 24, Git y GitHub CLI si faltan. Autentica tu cuenta: `gh auth login`; comprueba `gh auth status`.
-3. Ejecuta `npm ci`, `npm run check` y `npm run build`.
-4. Reemplaza TU_USUARIO en los comandos por el propietario correcto. Si ya existe el repo, no lo recrees: usa su remoto.
+## 0. Una sola vez: herramientas y skills
+
+Node 24, Git y GitHub CLI (`gh auth login`, comprueba con `gh auth status`).
+
+**Skills a nivel de usuario** (se instalan una vez y sirven para todos los clientes; no se versionan en el repo, el `.gitignore` ya excluye `.claude/skills/`, `.agents/` y `.codex/`):
+
+| Skill | Para qué | Instalar |
+| --- | --- | --- |
+| impeccable | Diseño, crítica y pulido de interfaz | `npx impeccable install` |
+| grill-me | Entrevista para cerrar vacíos de PRODUCT.md | `npx skills@latest add mattpocock/skills --skill grill-me --skill grilling` |
+| **hyperframes** (sugerida) | Crear el **video del hero** o un video promo desde HTML/CSS → MP4. Apache 2.0, requiere Node 22+ y FFmpeg | `claude plugin marketplace add heygen-com/hyperframes` y `claude plugin install hyperframes@hyperframes` (otros agentes: `npx skills add heygen-com/hyperframes`) |
+| **anatomy** (sugerida) | **Ilustraciones isométricas SVG que explican** cómo funciona un equipo, proceso o sistema. MIT, solo Node 20.10+ | `npx skills add wheresryan22/anatomy -g -a claude-code` |
+
+Los instaladores pueden cambiar: si las opciones difieren, usa su documentación oficial. Vuelve a abrir la sesión del agente para que las detecte.
+
+### Video con HyperFrames → hero
+1. Crea el proyecto de video **fuera del repo** o en `plan/originales/video/` (excluida de Git): `npx hyperframes init video-hero`.
+2. Prompt: «Con /hyperframes crea un loop de 8 s, 1280×720, sin audio ni texto indispensable, con los colores de DESIGN.md, para el fondo del hero».
+3. `npx hyperframes render` y comprime (README › Fotos y videos) a 2–5 MiB.
+4. Copia solo el MP4 final a `public/videos/` (o súbelo desde el CMS), pon `hero.modo: video` y una imagen de portada (un fotograma del mismo video).
+
+### Ilustración con anatomy → sección explicativa
+1. Prompt: «Con /anatomy explica cómo funciona [equipo/proceso del cliente]. Entrega un **.svg suelto** (no React), con las piezas reales que aparecen en PRODUCT.md».
+2. Estático: guárdalo en `src/assets/images/ilustraciones/` y úsalo como `hero.imagen` o con `<MediaImage>`. Animado: pégalo en un componente `Ilustracion.astro` (dentro de `<div class="hero-media">`) y en Landing.astro usa `<Hero><Ilustracion /></Hero>`.
+3. Revisa: `role="img"` y `<title>`/aria-label con la explicación, animación desactivada con `prefers-reduced-motion`, sin texto indispensable solo dentro del dibujo, que no invente piezas ni datos técnicos.
+4. Nada de React ni salida WebGL en esta base; si hace falta 3D real, usa `modulos/hero-3d`.
+
+## 1. Crear el proyecto
+
+Desde la carpeta padre:
 
 ```bash
-git init -b main
-git add .
-git commit -m "Plantilla Astro estatica v1"
-gh repo create TU_USUARIO/landing-base --private --source=. --remote=origin --push
-gh repo edit TU_USUARIO/landing-base --template
-```
-
-Si Git pide identidad, configura tu nombre y correo de commits. Mantén el repositorio privado inicialmente. No subas node_modules, dist, .env ni credenciales.
-
-Puedes pedir al agente: «Lee AGENTS.md, verifica la plantilla y súbela a TU_USUARIO/landing-base como repositorio privado de plantilla. Está autorizado crear el repo, hacer commit y push. No modifiques mi autenticación ni publiques una web de cliente todavía». El agente requiere tu sesión de GitHub CLI y permisos sobre ese propietario.
-
-## B. Crear el proyecto de un cliente
-
-Desde la carpeta PADRE (fuera de landing-base):
-
-```bash
-gh repo create PROPIETARIO/cliente-industrial --template TU_USUARIO/landing-base --private --clone
-cd cliente-industrial
+gh repo create PROPIETARIO/cliente-x --template TU_USUARIO/landing-base --private --clone
+cd cliente-x
 npm ci
 npm run dev
 ```
 
-El propietario debe ser una cuenta u organización donde tengas permisos. Acuerda la propiedad con el cliente; preferible que conserve sus cuentas y dominio. Una plantilla crea un proyecto independiente: futuras correcciones de la base no se propagan automáticamente.
+El propietario debe ser una cuenta u organización donde tengas permisos; preferible que el cliente conserve sus cuentas y dominio. Las mejoras futuras de la plantilla no se propagan solas.
 
-## C. Preparar las skills
+## 2. Entender (investigación → PRODUCT.md)
 
-Dentro del proyecto:
+1. Rescata el sitio actual si existe (plan/brief.md › 1).
+2. Entrevista con las tres preguntas clave y el resto de plan/brief.md.
+3. Consolida en PRODUCT.md con etiquetas [DECIDIDO]/[PROPUESTA]/[SITIO]/[PENDIENTE].
 
-```bash
-npx impeccable install
-npx skills@latest add mattpocock/skills --skill grill-me --skill grilling
-```
+Prompt: «Lee plan/brief.md y plan/originales/sitio-actual/. Resuelve solo los vacíos que afecten tipo de sitio, público, CTA, pruebas y alcance (usa grill-me si hace falta). Actualiza PRODUCT.md con etiquetas. No escribas componentes todavía».
 
-Selecciona el agente que usarás y vuelve a abrir su sesión. Revisa que las skills aparezcan. grill-me utiliza grilling; no son dos entrevistas que debas repetir. Los instaladores pueden cambiar: usa su documentación oficial si las opciones difieren. No necesitas instalar todo el catálogo ni crear tu propia skill.
+## 3. Dirección visual (DESIGN.md)
 
-La skill de gh es opcional: el agente puede ejecutar git y gh directamente. Este ZIP no incluye ni instala skills de terceros automáticamente.
+1. Explora dos direcciones con el contenido real (Stitch, impeccable o capturas). Elige una.
+2. Guarda capturas en plan/mockups y la dirección en DESIGN.md › Dirección vigente, incluido el medio del hero (imagen, video, 3D o ilustración).
 
-## D. Investigar y decidir
+Prompt: «Compara estas capturas con PRODUCT.md. Detecta problemas de mensaje, jerarquía, móvil y CTA. Escribe DESIGN.md › Dirección vigente. No agregues efectos por decoración».
 
-1. Llena plan/brief.md con el cliente y sus materiales. Anota hechos confirmados, supuestos y pendientes por separado.
-2. Usa grill-me para resolver dudas relevantes; consolida las decisiones en PRODUCT.md.
-3. Redacta y aprueba los textos reales. Puedes usar un borrador temporal; al integrarlos, landing.json será la fuente publicada.
-4. Si usas `/impeccable init`, indícale que aproveche PRODUCT.md y no repita la entrevista.
+## 4. Construir la página completa
 
-Prompt: «Lee plan/brief.md. Ayúdame a resolver solo los vacíos que afecten público, propuesta, CTA, pruebas y alcance. Actualiza PRODUCT.md. No escribas componentes todavía».
+Prompt: «Lee AGENTS.md, PRODUCT.md y DESIGN.md. Personaliza esta base para el cliente: tokens, componentes y orden en Landing.astro. Integra los textos [DECIDIDO] en landing.json y mantén .pages.yml sincronizado. Muéstrame hero y una sección; después construye toda la página sin detenerte por cada sección. Comprueba móvil y escritorio».
 
-## E. Aprobar diseño y recursos
+- Segundo idioma: README › Segundo idioma.
+- Muestra al cliente la **página completa en preview** antes de pulir 3D, video o microinteracciones: el rediseño suele llegar al ver todo.
+- Si cambia la dirección, reescribe DESIGN.md/PRODUCT.md (no apiles parches).
 
-1. En Stitch explora dos direcciones con el mismo contenido real. Elige una; revisa escritorio y móvil.
-2. Guarda capturas en plan/mockups y decisiones en DESIGN.md.
-3. Planifica el movimiento ahora. CSS/SVG ligero por defecto. Video solo si ayuda a mostrar proceso, escala o atmósfera.
-4. Si corresponde, usa Flow después de aprobar la composición. Exporta, comprime y prueba encuadre móvil. Una imagen generada no debe presentarse como un proyecto real.
-5. Segunda entrevista solo si quedan contradicciones. Cierra diseño y textos antes del desarrollo detallado.
+## 5. Publicar y conectar
 
-Prompt: «Compara estas capturas con PRODUCT.md. Detecta problemas de mensaje, jerarquía, móvil y CTA. Actualiza DESIGN.md con lo aprobado, incluido movimiento. No agregues efectos por decoración».
+1. Sube el repo. En Cloudflare **Pages** conecta GitHub: rama `main`, build `npm run build`, salida `dist`, variable `NODE_VERSION=24`.
+2. Cambios visuales en una rama → preview de Cloudflare → merge a main al aprobar.
+3. **`seo.indexar=false` mientras el dominio real no apunte a este sitio.** Evita que se indexe el dominio de prueba `*.pages.dev`. Lighthouse SEO marcará ~69 por el `noindex`: es intencional, no lo «arregles». JSON-LD solo se emite con `indexar=true`.
+4. Pages CMS: en https://app.pagescms.org autoriza el repo e invita al cliente.
+5. Formulario por correo: crea la clave en Web3Forms con la cuenta del destinatario (anota el dueño en PRODUCT.md › Cuentas). Cloudflare Pages → Settings → Variables: `PUBLIC_WEB3FORMS_ACCESS_KEY` **para Production y Preview**, y vuelve a desplegar. Comprueba: en el HTML publicado debe existir `name="access_key"` con tu clave. Sin la clave la compilación falla a propósito.
+6. **Día del cambio de DNS:** dominio en Cloudflare, `negocio.web` con la URL HTTPS final, `seo.indexar=true`, `npm run release:check` y push a main.
 
-## F. Construir
+No hace falta GitHub Actions: Cloudflare construye. Cliente guarda en Pages CMS → commit en GitHub → Cloudflare publica (tarda unos minutos).
 
-Prompt: «Lee AGENTS.md, PRODUCT.md y DESIGN.md. Personaliza esta base para el cliente. Integra los textos aprobados en landing.json y conserva el panel sincronizado. Muéstrame hero y una sección para confirmar dirección; después implementa el resto sin detenerte por cada sección. Respeta el stack y comprueba móvil y escritorio».
+## 6. Entregar
 
-Usa un agente principal (Claude Code o Codex). La segunda revisión es opcional. Impeccable audit/polish debe corregir hallazgos, no reiniciar un diseño aprobado.
-
-## G. Conectar publicación y panel
-
-1. Sube el proyecto a su repo. En Cloudflare Pages conecta GitHub, selecciona repo y main; build `npm run build`, salida `dist`, NODE_VERSION `24`.
-2. Mantén seo.indexar=false durante borradores. Eso evita indexación solicitada, no hace privada una URL. Usa previews sin información confidencial.
-3. En https://app.pagescms.org autoriza el repositorio. Pages CMS leerá .pages.yml en la raíz. Configura al cliente como colaborador con el acceso permitido por el servicio.
-4. Si hay formulario: configura Web3Forms y variable de compilación antes de activarlo.
-5. Configura dominio, actualiza negocio.web a su URL HTTPS final y comprueba DNS y certificado.
-6. Tras aprobación, activa seo.indexar y ejecuta `npm run release:check` con la variable del formulario configurada cuando aplique. Haz commit y push a main; verifica el resultado del deploy.
-
-No se requiere un workflow YAML de GitHub Actions. Cloudflare construye la web. El cliente guarda en Pages CMS; este guarda en GitHub y Cloudflare vuelve a publicar. No es instantáneo.
-
-## H. Entregar
-
-- Prueba edición real de texto, nueva imagen y nueva red; espera a ver el deploy.
-- Si usa video, prueba reemplazo, portada, pausa y reducción de movimiento.
-- Revisa navegador a 375 px y escritorio, foco con teclado, zoom, contraste y enlaces.
-- Envía formulario de prueba autorizado y comprueba recepción.
+- Recorre VERIFICACION.md con la web publicada.
+- Prueba con el cliente: editar texto, subir imagen, añadir red; espera el deploy.
+- Envío de formulario autorizado y recepción comprobada (también spam).
 - Entrega ENTREGA-CLIENTE.md personalizado y un video corto usando SU panel.
-- Registra quién conserva las cuentas y cómo recuperar accesos. Explica qué mantenimiento técnico futuro no cubre el CMS.
+- Registra quién conserva cada cuenta (PRODUCT.md › Cuentas).
+
+## Llevar mejoras a la plantilla
+
+Lo que aprendas en un cliente y sirva a todos: anota el **patrón** (no el contenido del cliente) y aplícalo en una rama de landing-base.

@@ -1,96 +1,129 @@
-# Landing base · v1.1
+# Landing base · v2.0
 
-Base técnica reutilizable: Astro estático + TypeScript + Tailwind 4 + Pages CMS + GitHub + Cloudflare Pages. Web3Forms opcional. Sin React, base de datos ni servidor propio. Los servicios externos del CMS y formulario sí tienen su propia infraestructura.
+Base técnica reutilizable para landings distintas entre sí, hechas rápido con IA: Astro estático + TypeScript + Tailwind 4 + Pages CMS + GitHub + Cloudflare Pages. Formulario opcional por WhatsApp y/o Web3Forms. Sin React, base de datos ni servidor propio.
+
+El diseño incluido solo comprueba conexiones. Lo que se reutiliza son las reglas, el contenido editable, la validación y los patrones accesibles; el aspecto se rehace en cada cliente.
 
 ## Inicio
 
-Requisitos: Node 24, npm, Git. GitHub CLI (`gh`) para subir automáticamente.
+Requisitos: Node 24, npm, Git. GitHub CLI (`gh`) para crear y subir repos.
 
 ```bash
 npm ci
-npm run dev
+npm run dev            # desarrollo
+npm run check          # tipos
+npm run build          # valida contenido (borrador) y compila
+npm run release:check  # exige contenido real, dominio e indexación: solo para la entrega
 ```
 
-Abre la dirección que imprime Astro. No ejecutes `npm create astro`: el proyecto ya está creado. El contenido de muestra está marcado [PENDIENTE] y tiene indexación desactivada. El diseño inicial sirve para comprobar conexiones; personalízalo para cada cliente.
-
-```bash
-npm run check
-npm run build
-npm run preview
-```
-
-`build` permite borradores; `release:check` exige contenido real, contacto, dominio e indexación. Este último se ejecuta antes de la entrega pública, no al guardar la plantilla.
+El contenido de muestra está marcado [PENDIENTE] y no se indexa. Flujo completo: **GUIA-PASO-A-PASO.md**.
 
 ## Archivos que vas a tocar
 
-- PRODUCT.md: objetivo, público, alcance, pruebas y decisiones.
-- DESIGN.md: dirección aprobada y movimiento.
-- AGENTS.md: reglas comunes; CLAUDE.md importa esas reglas.
-- plan/brief.md: notas; plan/mockups/: capturas aprobadas.
-- src/content/landing.json: textos, contacto, medios, servicios y redes.
-- .pages.yml: panel Pages CMS; no es configuración de Cloudflare.
-- src/styles/global.css: tokens Tailwind y estilos.
-- src/components/: Hero, Contact y MediaImage.
-- astro.config.mjs: salida estática y `site` tomado de negocio.web.
-- GUIA-PASO-A-PASO.md: subir plantilla y flujo por cliente.
-- modulos/: piezas opcionales que se copian solo al cliente que las necesita (hero 3D).
-- ENTREGA-CLIENTE.md: instrucciones básicas del panel.
+| Archivo | Qué es |
+| --- | --- |
+| PRODUCT.md / DESIGN.md | Decisiones del cliente (con etiquetas e historial) |
+| AGENTS.md | Reglas para el agente (CLAUDE.md las importa) |
+| plan/brief.md | Investigación; plan/originales/ queda fuera de Git |
+| src/content/landing.json | Todo el texto publicado y los medios |
+| .pages.yml | Panel de Pages CMS (no es configuración de Cloudflare) |
+| src/components/Landing.astro | Orden de la página: quita, reordena o cambia secciones aquí |
+| src/styles/global.css | Tokens y estilos |
+| VERIFICACION.md | Lista de comprobación antes de entregar |
+
+## Componentes base
+
+Todos leen el contenido con `getContent(Astro.params.lang)` y **se omiten solos si su contenido está vacío**. Reemplaza o borra los que no encajen (y actualiza esta tabla en el proyecto del cliente).
+
+| Componente | Qué hace | Se desactiva con |
+| --- | --- | --- |
+| Navbar | Barra que se oculta al bajar; menú móvil con `popover` nativo; selector de idioma si hay más de uno | — |
+| Hero | Textos + medio intercambiable: imagen/SVG, video (HeroVideo, su JS solo se carga en modo video) o cualquier componente como hijo | — |
+| CardGrid | Tarjetas genéricas (servicios, proyectos) | lista vacía |
+| LogoMarquee | Logos; con 6 o más, carrusel CSS con pausa | `marcas` vacía |
+| Contact | Enlaces directos, formulario WhatsApp/correo con validación accesible, mapa estático | `formulario.whatsapp/correo` en false, `contacto.mapa.imagen` vacío |
+| FloatingCta | Botón flotante móvil hacia #contacto | `interfaz.contactoFlotante` vacío |
+| Footer | Nombre, redes y pie | — |
+| MediaImage / Icon | Imágenes optimizadas desde el CMS / iconos Lucide locales | — |
+
+## Segundo idioma
+
+1. Copia `src/content/landing.json` a `src/content/landing.en.json` y cambia `"idioma": "en"` y `seo.locale`. Traduce los textos.
+2. Listo: `/en/` se genera solo (`src/pages/[lang]/index.astro`), aparecen el selector y `hreflang`.
+3. En `.pages.yml` añade al final de `content`:
+   ```yaml
+   - name: landing-en
+     label: Página en inglés
+     type: file
+     path: src/content/landing.en.json
+     format: json
+     operations:
+       delete: false
+     fields: *campos
+   ```
+El validador exige la misma estructura y la misma cantidad de elementos en cada lista que el idioma principal. Con un solo idioma no se genera `hreflang`.
 
 ## Fotos y videos
 
-Pages CMS guarda fotos en src/assets/images y referencias /src/assets/images/... en el JSON. MediaImage resuelve esas referencias mediante import.meta.glob y Astro genera los archivos finales optimizados. Nunca uses la referencia /src/... directamente como src HTML. Reemplaza placeholder.svg y favicon.svg.
+Pages CMS guarda fotos en src/assets/images y referencias /src/assets/images/... en el JSON. MediaImage las resuelve y Astro genera archivos optimizados. Nunca uses la referencia /src/... como src HTML. Reemplaza placeholder.svg y favicon.svg.
 
-Video: elige modo `video`, sube MP4 comprimido y define imagen de portada. Alternativamente usa videoExterno con URL directa HTTPS; tiene prioridad sobre el archivo subido. Borra esa URL para volver a usar el archivo local. No se necesita video para que la landing funcione. Con movimiento reducido no se asigna la fuente del video.
+**Procedencia:** cada imagen tomada de terceros (sitio actual del cliente, fabricantes, mapas) lleva al lado una ficha `nombre.ext.json`:
 
-Compresión opcional si ya tienes FFmpeg (ejemplo; revisa el resultado y peso):
+```json
+{ "origen": "https://...", "fecha": "2026-10-15", "licencia": "cedida por el cliente | pendiente | CC BY-SA (OSM)", "nota": "" }
+```
+
+Logos con leyendas como «Authorized Dealer» quedan [PENDIENTE] hasta tener prueba (PRODUCT.md).
+
+**Video:** modo `video`, MP4 comprimido e imagen de portada. `videoExterno` (URL directa HTTPS) tiene prioridad sobre el archivo subido. Con movimiento reducido, en celular o con ahorro de datos se muestra la portada. Para crear el video, ver la skill HyperFrames en la guía.
 
 ```bash
 ffmpeg -i original.mp4 -t 10 -an -vf "scale=1280:-2" -c:v libx264 -crf 28 -preset medium -pix_fmt yuv420p -movflags +faststart hero.mp4
 ```
 
-No subas originales pesados. El límite 8 MiB es una decisión de esta plantilla, no la cuota de Cloudflare. Los videos externos tampoco se comprimen automáticamente.
+Límite 8 MiB (decisión de la plantilla). Los videos externos no se comprimen automáticamente.
 
-## Tres tipos de landing
+**Mapa:** imagen estática (por ejemplo, de OpenStreetMap recoloreada, ~50 KB) + crédito + enlace «Cómo llegar». No se carga ningún iframe ni cookie de terceros.
+
+## Tipos de hero
+
+El hero mantiene textos y CTA; el medio se elige por cliente. Lo que no se usa no se carga.
 
 | Tipo | Cómo | Dependencias extra |
 | --- | --- | --- |
-| Simple con imagen | `hero.modo: imagen` (por defecto) | Ninguna |
-| Con video | `hero.modo: video` + MP4 y portada | Ninguna |
-| Con modelo 3D | Módulo `modulos/hero-3d` (ver su README) | three.js, solo en ese cliente |
+| Imagen | `hero.modo: imagen` (por defecto) | Ninguna |
+| SVG estático | `hero.modo: imagen` con un `.svg` como imagen | Ninguna |
+| Video | `hero.modo: video` + MP4 y portada (se puede generar con HyperFrames) | Ninguna en el sitio |
+| SVG animado / ilustración (anatomy) o composición propia | En Landing.astro: `<Hero><Ilustracion /></Hero>` | Ninguna en el sitio |
+| Modelo 3D | `<Hero><Hero3D /></Hero>` con `modulos/hero-3d` | three.js, solo en ese cliente |
 
-En celular y con ahorro de datos, el video y el 3D muestran la imagen de portada. Si un cliente necesita video en celular, quita esa condición en `Hero.astro` y pruébalo con datos móviles.
+Cualquier componente pasado como hijo de `<Hero>` reemplaza al bloque de imagen/video; usa la clase `hero-media` para heredar el encuadre. Mantén siempre una imagen de respaldo y sin información indispensable dentro del medio.
 
 ## Formulario
 
-1. Obtén una clave en Web3Forms vinculada al correo del cliente.
-2. Copia .env.example a .env y completa PUBLIC_WEB3FORMS_ACCESS_KEY para desarrollo.
-3. En Cloudflare Pages añade esa variable de compilación; necesita nuevo deploy.
-4. Activa formulario.activo en el CMS.
-5. Envía una prueba autorizada y confirma recepción y spam.
+Dos canales independientes en `formulario`:
+- `whatsapp: true` — arma un mensaje con los campos y abre WhatsApp con el número de Contacto. No necesita cuentas.
+- `correo: true` — envía con Web3Forms sin salir de la página; sin JS hace POST nativo. Requiere `PUBLIC_WEB3FORMS_ACCESS_KEY` en `.env` y en Cloudflare (Production y Preview). **Sin clave la compilación falla**; nunca pongas una clave de respaldo en el código.
 
-La clave Web3Forms es pública en el HTML; no uses aquí claves privadas. El correo de contacto editable NO cambia el destinatario de Web3Forms. Gestiona destinatario/clave en la cuenta de ese servicio. El formulario básico hace POST nativo y muestra la respuesta del proveedor; no requiere JavaScript. Incluye honeypot; CAPTCHA adicional se incorpora si el spam real lo justifica.
+La clave es pública en el HTML. El correo visible del CMS no cambia el destinatario de Web3Forms. Incluye honeypot; CAPTCHA solo si el spam real lo justifica.
+
+## Rendimiento por defecto
+
+CSS en línea (`build.inlineStylesheets: 'always'`), fuentes servidas desde el propio sitio con la API `fonts` de Astro (ejemplo comentado en astro.config.mjs), imágenes optimizadas, sin JS de terceros. `content-visibility` solo en el pie: en secciones destino de anclas rompe el salto en móvil.
 
 ## Cloudflare Pages
 
-Conecta GitHub en Cloudflare **Pages**. Rama de producción: main. Build: `npm run build`. Salida: `dist`. Raíz: la carpeta que contiene package.json (vacía si está en raíz del repo). Variable NODE_VERSION: `24`.
-
-Sin adaptador Cloudflare, sin Workers y sin wrangler para este despliegue estático. Sin GitHub Actions duplicados. Un commit a main dispara la compilación. La primera conexión con GitHub y el dominio requiere acceso del propietario; gh no configura por sí solo Cloudflare ni Pages CMS.
-
-## Verificación y límites
-
-Ver VERIFICACION.md. No se incluyen cuentas, claves ni contenido real. La integración con cuentas externas debe comprobarse en el primer proyecto. No se ha medido un rendimiento real de producción ni se promete una puntuación Lighthouse.
+Rama de producción `main`, build `npm run build`, salida `dist`, `NODE_VERSION=24`. Sin adaptador, Workers ni wrangler. Sin GitHub Actions duplicados. La primera conexión con GitHub y el dominio requiere acceso del propietario.
 
 ## Documentación oficial
 
 - https://docs.astro.build/en/guides/deploy/cloudflare/
+- https://docs.astro.build/en/guides/fonts/
 - https://tailwindcss.com/docs/installation/framework-guides/astro
 - https://pagescms.org/docs/configuration/
 - https://developers.cloudflare.com/pages/get-started/git-integration/
-- https://cli.github.com/manual/gh_repo_create
 - https://docs.web3forms.com/getting-started/installation
 - https://impeccable.style/
 - https://github.com/mattpocock/skills
-
-## Iconos
-
-SVG locales integrados en Astro; sin librería JavaScript ni fuente de iconos. Usa Lucide para iconos de interfaz cuando hagan falta y conserva su licencia. Los logos de redes se incorporan desde recursos de marca autorizados. Conserva nombres visibles y un enlace de texto como fallback para redes nuevas. Los iconos decorativos llevan aria-hidden="true"; un botón sin texto necesita nombre accesible. No instales React ni una librería de iconos para esta base.
+- https://github.com/heygen-com/hyperframes
+- https://github.com/wheresryan22/anatomy

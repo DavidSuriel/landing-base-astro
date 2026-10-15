@@ -1,0 +1,65 @@
+---
+// Barra fija que se oculta al bajar y reaparece al subir. En móvil, menú con popover nativo (funciona sin JS).
+import MediaImage from './MediaImage.astro';
+import { getContent, LANGS } from '../lib/content';
+const data = getContent(Astro.params.lang);
+const home = LANGS.find((l) => l.lang === data.idioma)?.path ?? '/';
+const links = [
+  data.servicios.some((s) => s.nombre) && { href: '#servicios', label: data.interfaz.menuServicios },
+  data.proyectos.some((p) => p.titulo) && { href: '#proyectos', label: data.interfaz.menuProyectos },
+  { href: '#contacto', label: data.interfaz.menuContacto },
+].filter((l): l is { href: string; label: string } => !!l && !!l.label);
+---
+<header class="nav" data-nav>
+  <div class="wrap nav__inner">
+    <a href={home} class="nav__brand">{data.negocio.logo ? <MediaImage src={data.negocio.logo} alt={data.negocio.nombre} widths={[160, 320]} sizes="160px" eager /> : data.negocio.nombre}</a>
+    <nav class="nav__links" aria-label={data.interfaz.menu}>
+      <ul>{links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+    </nav>
+    {LANGS.length > 1 && <nav class="nav__lang" aria-label={data.interfaz.idioma}>
+      {LANGS.map((l) => <a href={l.path} hreflang={l.lang} lang={l.lang} aria-current={l.lang === data.idioma ? 'page' : undefined}>{l.lang.toUpperCase()}</a>)}
+    </nav>}
+    <button class="nav__toggle" type="button" popovertarget="menu-movil" aria-controls="menu-movil" aria-expanded="false"
+      aria-label={data.interfaz.menuAbrir} data-open={data.interfaz.menuAbrir} data-close={data.interfaz.menuCerrar}>
+      <span class="nav__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <div id="menu-movil" class="nav__sheet" popover>
+      <nav aria-label={data.interfaz.menu}>
+        <ul>{links.map((l) => <li><a href={l.href} data-close-menu>{l.label}</a></li>)}</ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  // El popover abre y cierra sin JS; aquí solo se sincroniza aria-expanded y el nombre, y se cierra al elegir enlace.
+  const sheet = document.getElementById('menu-movil');
+  const toggle = document.querySelector<HTMLButtonElement>('.nav__toggle');
+  if (sheet && toggle) {
+    sheet.addEventListener('toggle', (e) => {
+      const open = (e as ToggleEvent).newState === 'open';
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', (open ? toggle.dataset.close : toggle.dataset.open) || '');
+      document.documentElement.classList.toggle('menu-open', open);
+    });
+    sheet.querySelectorAll('[data-close-menu]').forEach((a) => a.addEventListener('click', () => sheet.hidePopover()));
+  }
+
+  // Barra inteligente: no se oculta arriba del todo, con el menú abierto ni con el foco dentro.
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  if (nav) {
+    let last = window.scrollY, ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      const keep = y < 80 || document.documentElement.classList.contains('menu-open') || nav.contains(document.activeElement);
+      nav.classList.toggle('is-scrolled', y > 8);
+      if (keep || y < last - 6) nav.classList.remove('is-hidden');
+      else if (y > last + 6) nav.classList.add('is-hidden');
+      last = y;
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
+    update();
+  }
+</script>

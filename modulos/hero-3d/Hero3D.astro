@@ -1,7 +1,8 @@
 ---
 // Módulo opcional: modelo 3D en el hero. Ver modulos/hero-3d/README.md antes de copiarlo a src/components/.
-import data from '../lib/content';
+import { getContent } from '../lib/content';
 import MediaImage from './MediaImage.astro';
+const data = getContent(Astro.params.lang);
 ---
 <div class="hero-media hero-3d" data-hero-3d data-model="/modelos/hero.glb">
   <MediaImage src={data.hero.imagen} alt={data.hero.alt} eager />
@@ -13,20 +14,45 @@ import MediaImage from './MediaImage.astro';
   .hero-3d.is-live > img { opacity: 0; }
 </style>
 <script>
+  type Nav = Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+  const nav = navigator as Nav;
   const box = document.querySelector<HTMLElement>('[data-hero-3d]');
   const canvas = box?.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
-  // Solo escritorio con mouse, sin movimiento reducido ni ahorro de datos. El resto ve la imagen de portada.
+
+  // Solo escritorio capaz: sin movimiento reducido, sin ahorro de datos, con WebGL y equipo de al menos 4 GB / 4 núcleos.
+  // El resto ve la imagen de portada (render real del modelo); three.js ni se descarga.
+  const hasWebGL = () => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } };
   const allowed = window.matchMedia('(pointer: fine) and (min-width: 761px)').matches
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    && !saveData;
+    && nav.connection?.saveData !== true
+    && (nav.deviceMemory ?? 8) >= 4
+    && (nav.hardwareConcurrency ?? 8) >= 4
+    && hasWebGL();
 
   if (box && canvas && allowed) {
-    start(box, canvas).catch(() => { canvas.hidden = true; box.classList.remove('is-live'); });
+    // El titular es el LCP: el 3D se carga después, tras la primera interacción, en tiempo libre y con el hero a la vista.
+    const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 200));
+    const events = ['pointermove', 'scroll', 'keydown', 'touchstart'];
+    const go = () => {
+      events.forEach((e) => removeEventListener(e, go));
+      idle(() => {
+        const io = new IntersectionObserver(([entry]) => {
+          if (!entry.isIntersecting) return;
+          io.disconnect();
+          start(box, canvas).catch(() => stop(box, canvas));
+        });
+        io.observe(box);
+      });
+    };
+    events.forEach((e) => addEventListener(e, go, { once: true, passive: true }));
+  }
+
+  function stop(box: HTMLElement, canvas: HTMLCanvasElement) {
+    canvas.hidden = true;
+    box.classList.remove('is-live');
   }
 
   async function start(box: HTMLElement, canvas: HTMLCanvasElement) {
-    // three se descarga solo aquí, cuando de verdad se va a mostrar el 3D.
     const THREE = await import('three');
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
 
@@ -59,9 +85,16 @@ import MediaImage from './MediaImage.astro';
     new ResizeObserver(resize).observe(box);
     resize();
 
+    // Vigilante: si en los primeros 2 s no llega a 30 fps, se descarta el 3D y queda la portada.
+    let frames = 0, checked = false;
     const clock = new THREE.Clock();
     const frame = () => {
       const t = clock.getElapsedTime();
+      frames++;
+      if (!checked && t > 2) {
+        checked = true;
+        if (frames / t < 30) { renderer.setAnimationLoop(null); renderer.dispose(); stop(box, canvas); return; }
+      }
       const intro = 1 - Math.pow(1 - Math.min(t / 1.6, 1), 3); // entrada suave de 1.6 s
       const scroll = Math.min(window.scrollY / window.innerHeight, 1); // giro extra solo dentro del hero
       pivot.rotation.y = (1 - intro) * -1.2 + t * 0.15 + scroll * Math.PI * 0.5;
@@ -71,6 +104,8 @@ import MediaImage from './MediaImage.astro';
 
     // Pausar el render cuando el hero sale de la pantalla.
     new IntersectionObserver(([entry]) => {
+      if (canvas.hidden && checked) return; // ya descartado
+      if (entry.isIntersecting && !checked) { frames = 0; clock.start(); } // medir fps solo con el hero a la vista
       renderer.setAnimationLoop(entry.isIntersecting ? frame : null);
     }).observe(box);
 
