@@ -26,8 +26,7 @@ const data = getContent(Astro.params.lang);
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     && nav.connection?.saveData !== true
     && (nav.deviceMemory ?? 8) >= 4
-    && (nav.hardwareConcurrency ?? 8) >= 4
-    && hasWebGL();
+    && (nav.hardwareConcurrency ?? 8) >= 4;
 
   if (box && canvas && allowed) {
     // El titular es el LCP: el 3D se carga después, tras la primera interacción, en tiempo libre y con el hero a la vista.
@@ -53,6 +52,8 @@ const data = getContent(Astro.params.lang);
   }
 
   async function start(box: HTMLElement, canvas: HTMLCanvasElement) {
+    // Crear un contexto WebGL es caro: se comprueba aquí, no al abrir la página.
+    if (!hasWebGL()) return stop(box, canvas);
     const THREE = await import('three');
     const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
 

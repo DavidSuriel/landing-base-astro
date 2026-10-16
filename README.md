@@ -31,6 +31,7 @@ El contenido de muestra está marcado [PENDIENTE] y no se indexa. Flujo completo
 | src/components/Landing.astro | Orden de la página: quita, reordena o cambia secciones aquí |
 | src/styles/global.css | Tokens y estilos |
 | VERIFICACION.md | Lista de comprobación antes de entregar |
+| OPTIMIZACION.md | Método para rendimiento móvil y SEO (medir, causa, un cambio, medir) |
 
 ## Componentes base
 

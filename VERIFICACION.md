@@ -19,7 +19,7 @@ Marca solo lo comprobado de verdad, con la fecha.
 - [ ] **Guardado del CMS simulado:** borra del JSON todas las claves con `""`, las listas `[]` y los objetos que queden vacíos, en todos los idiomas y luego en uno solo; añade un espacio al final de un texto. `npm run check` y `npm run build` pasan y el texto sale recortado.
 - [ ] Ciclo CMS → commit → check de Cloudflare Pages en verde → cambio visible en el sitio, con una edición real.
 - [ ] Dominio y HTTPS; `seo.indexar=true` solo tras el cambio de DNS.
-- [ ] Lighthouse móvil ≥ 90 en rendimiento y accesibilidad.
+- [ ] Lighthouse móvil ≥ 90 en rendimiento y accesibilidad, medido sobre la build (`npm run preview`); método en OPTIMIZACION.md.
 
 # Cambios de v2.0 — 15 de octubre de 2026
 

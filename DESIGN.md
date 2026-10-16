@@ -8,7 +8,7 @@ Esta sección es la única que manda. Si la dirección cambia, **reescríbela** 
 - Idea visual y por qué representa a este negocio: [PENDIENTE]
 - Referencias (qué tomar y qué evitar): [PENDIENTE]
 - Capturas aprobadas: plan/mockups/ (escritorio y móvil).
-- Tipografía (fuentes con la API `fonts` de Astro, ver astro.config.mjs): [PENDIENTE]
+- Tipografía (fuentes con la API `fonts` de Astro, ver astro.config.mjs; si se recortan, anota aquí el rango de pesos/anchos: uno fuera del rango obliga a regenerar la fuente): [PENDIENTE]
 - Colores y contraste (un acento que no llegue a AA no se usa como texto sobre ese fondo): [PENDIENTE]
 - Secciones claras/oscuras, espaciado y tratamiento de fotos: [PENDIENTE]
 - Traducir tokens a @theme en src/styles/global.css.

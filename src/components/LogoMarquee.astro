@@ -1,7 +1,8 @@
 ---
 // Logos de marcas o clientes. Con 6 o más se mueven en carrusel CSS; con menos, cuadrícula quieta. Lista vacía: no se genera.
 // Accesible: la copia es aria-hidden, pausa con puntero/foco y botón (WCAG 2.2.2); quieto con movimiento reducido.
-// Logos en eager + fetchpriority low: el lazy del navegador no sigue bien una pista animada con transform y los pinta tarde.
+// Logos en lazy (no compiten con el hero) y un IntersectionObserver con margen amplio los pasa a eager antes de llegar:
+// el lazy del navegador no sigue bien una pista animada con transform y, solo, los pinta en blanco.
 import Icon from './Icon.astro';
 import MediaImage from './MediaImage.astro';
 import { getContent } from '../lib/content';
@@ -20,14 +21,22 @@ const moving = logos.length >= 6;
   <div class:list={['marquee', { 'is-moving': moving }]}>
     <div class="marquee__track">
       {(moving ? [0, 1] : [0]).map((copy) => <ul class="marquee__list" aria-hidden={copy === 1 ? 'true' : undefined}>
-        {logos.map((m) => <li class="logo-card"><MediaImage src={m.logo} alt={copy === 0 ? m.nombre : ''} widths={[180, 360]} sizes="180px" eager priority="low" /></li>)}
+        {logos.map((m) => <li class="logo-card"><MediaImage src={m.logo} alt={copy === 0 ? m.nombre : ''} widths={[180, 360]} sizes="180px" /></li>)}
       </ul>)}
     </div>
   </div>
 </section>}
 
 <script>
+  const early = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      early.unobserve(e.target);
+      for (const img of e.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')) img.loading = 'eager';
+    }
+  }, { rootMargin: '800px 0px' });
   for (const root of document.querySelectorAll<HTMLElement>('[data-logos]')) {
+    early.observe(root);
     const btn = root.querySelector<HTMLButtonElement>('[data-logos-toggle]');
     if (!btn) continue;
     btn.hidden = false;

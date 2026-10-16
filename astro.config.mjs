@@ -13,7 +13,10 @@ export default defineConfig({
   // 1) añade `fontProviders` al import de 'astro/config' y descomenta;
   // 2) en Layout.astro: import { Font } from 'astro:assets' y <Font cssVariable="--font-display" preload /> (preload solo en las del primer pantallazo);
   // 3) en global.css: --font-sans: var(--font-display);
+  // Más ligero: fuente recortada a los pesos/anchos que usa el CSS en src/assets/fonts con fontProviders.local() (OPTIMIZACION.md › Fuentes).
   // fonts: [
   //   { provider: fontProviders.google(), name: 'Inter', cssVariable: '--font-display', weights: ['400 700'], styles: ['normal'], subsets: ['latin'], fallbacks: ['system-ui', 'sans-serif'] },
+  //   { provider: fontProviders.local(), name: 'Inter', cssVariable: '--font-display', fallbacks: ['Arial', 'sans-serif'],
+  //     options: { variants: [{ src: ['./src/assets/fonts/inter-400-700.woff2'], weight: '400 700', style: 'normal', display: 'swap' }] } },
   // ],
 });
