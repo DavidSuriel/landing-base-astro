@@ -16,7 +16,8 @@ Marca solo lo comprobado de verdad, con la fecha.
 - [ ] Sin JS: contenido visible y enlaces de contacto funcionan.
 - [ ] Video: reproducción, pausa, portada y fallback si falla.
 - [ ] Segundo idioma (si aplica): selector, `hreflang`, textos traducidos.
-- [ ] Ciclo CMS → commit → Cloudflare → sitio con una edición real.
+- [ ] **Guardado del CMS simulado:** borra del JSON todas las claves con `""`, las listas `[]` y los objetos que queden vacíos, en todos los idiomas y luego en uno solo; añade un espacio al final de un texto. `npm run check` y `npm run build` pasan y el texto sale recortado.
+- [ ] Ciclo CMS → commit → check de Cloudflare Pages en verde → cambio visible en el sitio, con una edición real.
 - [ ] Dominio y HTTPS; `seo.indexar=true` solo tras el cambio de DNS.
 - [ ] Lighthouse móvil ≥ 90 en rendimiento y accesibilidad.
 

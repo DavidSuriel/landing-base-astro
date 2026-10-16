@@ -12,6 +12,7 @@ Lee PRODUCT.md y DESIGN.md. Usa plan/brief.md (y plan/originales/sitio-actual/ s
 - Los textos publicados viven en src/content/landing.json (y landing.<código>.json por idioma, misma estructura). Lee el contenido con getContent(Astro.params.lang). Modifica .pages.yml cuando agregues campos. No reemplaces contenido del cliente por el ejemplo del starter.
 - Imágenes en src/assets/images: usa MediaImage o resolveImage; no pongas rutas /src/... directamente en el HTML final. No elimines archivos que estén referenciados. Toda foto visible lleva alt (el validador lo exige). Imágenes de terceros llevan su ficha de procedencia (README › Fotos).
 - Opcionales vacíos se omiten. Mantén los objetos y listas del JSON aunque estén vacíos. Las redes son una lista de nombre y URL, con enlaces de texto accesibles.
+- Pages CMS borra al guardar las claves vacías (`""`, `[]`, objetos sin datos), en cualquier nivel, y no recorta espacios. Nunca asumas que una clave opcional existe: los tipos salen de src/content/estructura.json y getContent() normaliza en un solo sitio (src/lib/normalize.mjs); los componentes muestran opcionales con condición. Campo nuevo → landing.json, estructura.json y .pages.yml (`required: true` solo si es obligatorio). El validador falla solo por obligatorios ausentes o formato inválido, nunca por un texto ausente ni por paridad de textos entre idiomas.
 - El cliente puede cambiar video y portada. MP4 optimizado, objetivo 2–5 MiB, límite de proyecto 8 MiB; para videos grandes o reemplazos frecuentes usa URL directa HTTPS. Pages CMS no comprime videos. No uses enlaces de páginas de YouTube como archivo MP4.
 - CSS/SVG primero. Movimiento útil, no fundidos obligatorios en cada sección. Respeta prefers-reduced-motion y no ocultes contenido esperando JS. GSAP solo si el diseño aprobado lo necesita.
 - No uses content-visibility en secciones destino de anclas (rompe el salto en móvil). scroll-padding-top sigue a --nav-h.
@@ -27,7 +28,7 @@ Cuando cambie la dirección, reescribe la sección afectada de PRODUCT.md o DESI
 ## Trabajo y entrega
 Una muestra inicial (hero y una sección) confirma la dirección; después construye la página completa y muéstrala en preview al cliente antes de pulir detalles (3D, microinteracciones). Un agente principal; segunda revisión solo si aporta.
 
-Ejecuta npm run check y npm run build. Para entrega definitiva, npm run release:check. Revisa VERIFICACION.md. Prueba el correo real con autorización y el ciclo CMS → commit → Cloudflare → sitio.
+Ejecuta npm run check y npm run build, también tras simular un guardado del CMS (VERIFICACION.md). Para entrega definitiva, npm run release:check. Revisa VERIFICACION.md. Prueba el correo real con autorización y el ciclo CMS → commit → Cloudflare → sitio.
 
 ## GitHub y publicación
 Usa git y gh existentes; una skill adicional es opcional. Comprueba cuenta, dueño, repositorio y remoto. Si el usuario autoriza subir cambios al repositorio indicado, realiza commit y push sin solicitar autorización repetida. Nunca uses force-push ni borres historial sin instrucción explícita. Un push a la rama de producción conectada a Pages publica automáticamente. Para cambios visuales usa una rama con preview y pasa a producción cuando se apruebe el resultado. No añadas GitHub Actions para duplicar el despliegue de Cloudflare Pages.

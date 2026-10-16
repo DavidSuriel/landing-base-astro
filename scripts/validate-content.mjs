@@ -1,6 +1,8 @@
 // Valida src/content/landing.json y cada idioma extra (landing.<código>.json). Con --release exige contenido definitivo.
 // Los mensajes están pensados para quien edita en Pages CMS.
+// Pages CMS borra las claves vacías al guardar: un texto ausente equivale a "" y una lista ausente a [] (src/lib/normalize.mjs).
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { rellenar } from '../src/lib/normalize.mjs';
 const release = process.argv.includes('--release');
 if (existsSync('.env')) process.loadEnvFile('.env');
 const DIR = 'src/content';
@@ -9,15 +11,19 @@ const LISTS = ['servicios', 'proyectos', 'marcas', 'redes'];
 const files = readdirSync(DIR).filter((f) => /^landing(\.[a-z]{2,3})?\.json$/.test(f)).sort((a, b) => (a === 'landing.json' ? -1 : b === 'landing.json' ? 1 : a.localeCompare(b)));
 const errors = [];
 const docs = {};
+const estructura = JSON.parse(readFileSync(`${DIR}/estructura.json`, 'utf8'));
+// Claves que no están en estructura.json: el panel o el JSON tienen un campo que los tipos no conocen.
+const extras = (molde, d, p = '') => Object.keys(d).flatMap((k) => (!(k in molde) ? [p + k] : molde[k] && typeof molde[k] === 'object' && !Array.isArray(molde[k]) && d[k] && typeof d[k] === 'object' ? extras(molde[k], d[k], `${p}${k}.`) : []));
 
 for (const file of files) {
   const tag = files.length > 1 ? `[${file}] ` : '';
   const fail = (s) => errors.push(`${tag}${s}`);
   const before = errors.length;
   let d;
-  try { d = JSON.parse(readFileSync(`${DIR}/${file}`, 'utf8')); } catch (e) { fail(`No se pudo leer: ${e.message}`); continue; }
-  for (const key of OBJECTS) if (!d[key] || typeof d[key] !== 'object' || Array.isArray(d[key])) fail(`Falta el objeto ${key}. Guarda el contenido completo desde el panel.`);
-  for (const key of LISTS) { d[key] ??= []; if (!Array.isArray(d[key])) fail(`${key} debe ser una lista (puede estar vacía).`); }
+  try { d = rellenar(estructura, JSON.parse(readFileSync(`${DIR}/${file}`, 'utf8'))); } catch (e) { fail(`No se pudo leer: ${e.message}`); continue; }
+  for (const key of OBJECTS) if (!d[key] || typeof d[key] !== 'object' || Array.isArray(d[key])) fail(`${key} debe ser un grupo de campos.`);
+  for (const key of LISTS) if (!Array.isArray(d[key])) fail(`${key} debe ser una lista (puede estar vacía).`);
+  for (const p of extras(estructura, d)) fail(`${p} no existe en src/content/estructura.json: añádelo allí (tarea técnica).`);
   const code = file.match(/^landing\.([a-z]{2,3})\.json$/)?.[1];
   if (!d.idioma) fail('Falta idioma (por ejemplo "es").');
   else if (code && d.idioma !== code) fail(`idioma debe ser "${code}", como el nombre del archivo.`);
@@ -34,7 +40,7 @@ for (const file of files) {
         if (!value.startsWith('/src/assets/images/') || value.includes('..') || !existsSync(`.${value}`)) fail(`Imagen inexistente o ruta incorrecta: ${path}`);
         if (release && value.includes('placeholder.svg')) fail(`Reemplazar imagen de ejemplo: ${path}`);
         // Toda foto visible necesita descripción (alt). Logos usan el nombre; la imagen SEO no se muestra.
-        if (key !== 'logo' && !path.startsWith('seo.') && 'alt' in obj && !obj.alt) fail(`${parent}: falta la descripción de la imagen (alt).`);
+        if (key !== 'logo' && !path.startsWith('seo.') && !obj.alt) fail(`${parent}: falta la descripción de la imagen (alt).`);
       }
       if (key === 'video') {
         if (!/^\/videos\/[^?#]+\.mp4$/i.test(value) || value.includes('..') || !existsSync(`public${value}`)) fail(`Video local inexistente: ${path}`);
@@ -61,11 +67,11 @@ for (const file of files) {
   }
 }
 
-// Idiomas extra: misma estructura que el principal (mismas claves y misma cantidad de elementos en cada lista).
+// Idiomas extra: misma cantidad de elementos en cada lista que el principal. Un texto ausente no es diferencia (el CMS lo borra si está vacío).
 const shape = (v) => (Array.isArray(v) ? `lista de ${v.length}` : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).map((k) => [k, shape(v[k])])) : 'valor');
 const diff = (a, b, path = '') => {
   if (typeof a !== 'object' || typeof b !== 'object') return a === b ? [] : [`${path || '(raíz)'} (${a} / ${b})`];
-  return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) => (k in a && k in b ? diff(a[k], b[k], path ? `${path}.${k}` : k) : [path ? `${path}.${k}` : k]));
+  return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) => (k in a && k in b ? diff(a[k], b[k], path ? `${path}.${k}` : k) : (a[k] ?? b[k]) === 'valor' ? [] : [path ? `${path}.${k}` : k]));
 };
 const [main, ...extra] = Object.keys(docs);
 for (const file of extra) for (const p of diff(shape(docs[main]), shape(docs[file]))) errors.push(`${main} y ${file} no coinciden en ${p}.`);

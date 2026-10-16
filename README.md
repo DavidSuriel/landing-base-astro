@@ -26,6 +26,7 @@ El contenido de muestra está marcado [PENDIENTE] y no se indexa. Flujo completo
 | AGENTS.md | Reglas para el agente (CLAUDE.md las importa) |
 | plan/brief.md | Investigación; plan/originales/ queda fuera de Git |
 | src/content/landing.json | Todo el texto publicado y los medios |
+| src/content/estructura.json | Todas las claves vacías: forma del contenido y origen de los tipos (Pages CMS borra las vacías al guardar) |
 | .pages.yml | Panel de Pages CMS (no es configuración de Cloudflare) |
 | src/components/Landing.astro | Orden de la página: quita, reordena o cambia secciones aquí |
 | src/styles/global.css | Tokens y estilos |
@@ -61,7 +62,23 @@ Todos leen el contenido con `getContent(Astro.params.lang)` y **se omiten solos 
        delete: false
      fields: *campos
    ```
-El validador exige la misma estructura y la misma cantidad de elementos en cada lista que el idioma principal. Con un solo idioma no se genera `hreflang`.
+El validador exige la misma cantidad de elementos en cada lista que el idioma principal; un texto vacío (o ausente) en un idioma no es error. Con un solo idioma no se genera `hreflang`.
+
+## Pages CMS y campos vacíos
+
+Al guardar, Pages CMS **borra las claves vacías** (`"horario": ""`, `"redes": []`, un objeto sin datos) y no recorta espacios. Si el build falla, Cloudflare sigue sirviendo la versión anterior y el panel no muestra error: el cliente cree que «no funciona». Por eso:
+
+- `src/content/estructura.json` tiene todas las claves vacías. `rellenar()` (src/lib/normalize.mjs) la combina con cada JSON y recorta textos; lo usan `getContent()` y el validador. Los tipos de `Content` salen de ahí, no de landing.json.
+- Campo nuevo: añádelo a landing.json, estructura.json y .pages.yml. El validador avisa si falta en estructura.json. Marca `required: true` en .pages.yml solo lo obligatorio.
+- Prueba antes de entregar: VERIFICACION.md › guardado del CMS.
+
+Diagnóstico cuando un guardado no aparece:
+
+```bash
+git fetch && git log origin/main -3 --format='%h %s'                       # ¿commits «via Pages CMS»?
+gh api repos/OWNER/REPO/commits/SHA/check-runs --jq '.check_runs[] | "\(.name) \(.conclusion)"'   # ¿Cloudflare Pages en failure?
+git worktree add ../cms-check origin/main && cd ../cms-check && npm ci && npm run build   # reproduce el error
+```
 
 ## Fotos y videos
 

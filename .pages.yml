@@ -1,4 +1,6 @@
 # Panel de Pages CMS. Cada etiqueta responde a «¿qué escribirá aquí alguien no técnico?».
+# Pages CMS borra al guardar los campos vacíos: no pasa nada (estructura.json los repone), pero marca required: true
+# en lo que de verdad es obligatorio para que el panel lo pida antes de guardar. Campo nuevo → también en src/content/estructura.json.
 # Segundo idioma: copia el bloque «landing» al final con name/label/path nuevos y `fields: *campos` (ver README › Segundo idioma).
 settings:
   content:
@@ -42,6 +44,7 @@ content:
     - name: nombre
       label: Nombre
       type: string
+      required: true
     - name: web
       label: Dominio completo (https://...)
       type: string
@@ -63,6 +66,7 @@ content:
     - name: titulo
       label: Título
       type: string
+      required: true
     - name: subtitulo
       label: Subtítulo
       type: text
@@ -85,6 +89,7 @@ content:
     - name: modo
       label: Formato de portada
       type: select
+      required: true
       options:
         values:
         - imagen
@@ -123,6 +128,7 @@ content:
     - name: nombre
       label: Nombre
       type: string
+      required: true
     - name: descripcion
       label: Descripción
       type: text
@@ -146,6 +152,7 @@ content:
     - name: titulo
       label: Título
       type: string
+      required: true
     - name: descripcion
       label: Descripción
       type: text
@@ -169,6 +176,7 @@ content:
     - name: nombre
       label: Nombre de la marca
       type: string
+      required: true
     - name: logo
       label: Logo (autorizado)
       type: image
@@ -226,9 +234,11 @@ content:
     - name: nombre
       label: Nombre
       type: string
+      required: true
     - name: url
       label: Enlace completo HTTPS
       type: string
+      required: true
   - name: seo
     label: Buscadores y redes
     type: object

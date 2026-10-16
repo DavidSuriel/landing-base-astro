@@ -1,0 +1,91 @@
+{
+  "idioma": "",
+  "negocio": {
+    "nombre": "",
+    "web": "",
+    "logo": "",
+    "descripcion": ""
+  },
+  "hero": {
+    "etiqueta": "",
+    "titulo": "",
+    "subtitulo": "",
+    "imagen": "",
+    "alt": "",
+    "video": "",
+    "videoExterno": "",
+    "modo": "",
+    "cta": ""
+  },
+  "secciones": {
+    "servicios": "",
+    "proyectos": "",
+    "marcas": "",
+    "contacto": "",
+    "contactoTexto": ""
+  },
+  "servicios": [],
+  "proyectos": [],
+  "marcas": [],
+  "contacto": {
+    "whatsapp": "",
+    "mensajeWhatsapp": "",
+    "telefono": "",
+    "email": "",
+    "direccion": "",
+    "horario": "",
+    "mapa": {
+      "imagen": "",
+      "alt": "",
+      "enlace": "",
+      "credito": ""
+    }
+  },
+  "redes": [],
+  "seo": {
+    "titulo": "",
+    "descripcion": "",
+    "imagen": "",
+    "locale": "",
+    "indexar": false
+  },
+  "formulario": {
+    "whatsapp": false,
+    "correo": false,
+    "titulo": "",
+    "nombre": "",
+    "email": "",
+    "telefono": "",
+    "mensaje": "",
+    "enviarWhatsapp": "",
+    "enviarCorreo": "",
+    "saludo": "",
+    "aviso": "",
+    "asunto": "",
+    "requerido": "",
+    "correoInvalido": "",
+    "enviando": "",
+    "exito": "",
+    "error": ""
+  },
+  "interfaz": {
+    "menu": "",
+    "menuAbrir": "",
+    "menuCerrar": "",
+    "menuServicios": "",
+    "menuProyectos": "",
+    "menuContacto": "",
+    "idioma": "",
+    "saltar": "",
+    "pausar": "",
+    "reproducir": "",
+    "whatsapp": "",
+    "comoLlegar": "",
+    "nuevaPestana": "",
+    "contactoFlotante": "",
+    "volver": "",
+    "noEncontrado": "",
+    "noEncontradoTexto": "",
+    "derechos": ""
+  }
+}
